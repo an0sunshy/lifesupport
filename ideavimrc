@@ -1,0 +1,9 @@
+set number
+set relativenumber
+set ignorecase
+set smartcase
+set showmode
+set wrapscan
+set hlsearch
+set incsearch
+set matchpairs
