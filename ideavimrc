@@ -7,3 +7,6 @@ set wrapscan
 set hlsearch
 set incsearch
 set matchpairs
+set surround
+" Share System clipboard
+set clipboard=unamed

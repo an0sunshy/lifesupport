@@ -1,34 +1,25 @@
-# Path to your oh-my-zsh installation.
-if [[ `uname` == "Linux" ]]; then
-        export ZSH=/home/xiao/.oh-my-zsh
-        DEFAULT_USER="xiao"
-        export GOPATH=/home/xiao/Dropbox/Dev/go
-        source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 
-        xset b off
-elif [[ `uname` == "Darwin" ]]; then
-        export ZSH=/Users/xiao/.oh-my-zsh
-        DEFAULT_USER="xiao"
-        source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-        export GOPATH=/Users/xiao/Dropbox/Dev/go
-        export https_proxy=http://127.0.0.1:6152
-        export http_proxy=http://127.0.0.1:6152
-        alias surge="cd /Users/xiao/Library/Mobile\ Documents/iCloud~run~surge/Documents"
-        alias airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-        alias sublime="open -a Sublime\ Text"
-        alias notesdir="/Users/xiao/Dropbox/Document/MyNotes"
-        alias surge-cli="/Applications/Surge.app/Contents/Applications/surge-cli"
-        alias bru="brew update && brew upgrade && brew cleanup"
-        alias pip="/usr/local/bin/pip2.7"
-        alias python="/usr/local/bin/python2"
-fi
-export PATH=$PATH:$GOPATH/bin
+set TERM="xterm-256color"
+export ZSH=/Users/xiao/.oh-my-zsh
+DEFAULT_USER="xiao"
+source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+export GOPATH=/Users/xiao/Dev/go
+export https_proxy=http://127.0.0.1:6152
+export http_proxy=http://127.0.0.1:6152
 export EDITOR='nvim'
+alias surge="cd /Users/xiao/Library/Mobile\ Documents/iCloud~run~surge/Documents"
+alias airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+alias sublime="open -a Sublime\ Text"
+alias notesdir="/Users/xiao/Dropbox/Document/MyNotes"
+alias surge-cli="/Applications/Surge.app/Contents/Applications/surge-cli"
+alias bru="brew update && brew upgrade && brew cleanup"
+alias pip="/usr/local/bin/pip2.7"
+alias python="/usr/local/bin/python2"
 alias dev="cd ~/Dropbox/Dev"
-alias py3="python3"
 alias py="python"
 alias g="git"
 alias rzsh="source ~/.zshrc"
 alias vim="nvim"
+alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
@@ -36,7 +27,7 @@ alias vim="nvim"
 # time that oh-my-zsh is loaded.
 ZSH_THEME="agnoster"
 
-# Uncomment the following line to use case-sensitive completion.
+# Uncomment the following line to use case-sensitive completion
 # CASE_SENSITIVE="true"
 
 # Uncomment the following line to use hyphen-insensitive completion. Case
@@ -78,7 +69,10 @@ HIST_STAMPS="mm/dd/yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git z fzf zsh-syntax-highlighting)
+plugins=(git z fzf zsh-syntax-highlighting docker osx tmux)
+# TMUX Settings
+ZSH_TMUX_AUTOSTART_ONCE="true"
+ZSH_TMUX_CONNECTING="true"
 
 # User configuration
 
