@@ -5,11 +5,13 @@ call plug#begin()
 " completion/coding
 "  Plug 'Valloric/YouCompleteMe'
 "  Plug 'roxma/nvim-completion-manager' 
-  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+"  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
   Plug 'jiangmiao/auto-pairs' "自动括号匹配
   Plug 'scrooloose/nerdcommenter'
   Plug 'tpope/vim-surround'
   Plug 'junegunn/vim-easy-align'
+  Plug 'scrooloose/nerdcommenter'
+  Plug 'majutsushi/tagbar'
 
 " Theme
   Plug 'mhartington/oceanic-next'
