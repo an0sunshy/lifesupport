@@ -3,9 +3,8 @@
 
 call plug#begin()
 " completion/coding
-"  Plug 'Valloric/YouCompleteMe'
 "  Plug 'roxma/nvim-completion-manager' 
-"  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
   Plug 'jiangmiao/auto-pairs' "自动括号匹配
   Plug 'scrooloose/nerdcommenter'
   Plug 'tpope/vim-surround'
@@ -47,7 +46,6 @@ call plug#begin()
 
 "Python
   Plug 'tell-k/vim-autopep8'
-
 
 call plug#end()
 
@@ -108,10 +106,6 @@ map <C-j> <C-W>j
 map <C-k> <C-W>k
 map <C-h> <C-W>h
 map <C-l> <C-W>l
-
-" YouCompleteMe
-let g:ycm_python_binary_path = '/usr/local/anaconda3/bin/python3'
-let g:ycm_server_python_interpreter ='/usr/local/anaconda3/bin/python3'
 
 " Easy Align
 xmap ga <Plug>(EasyAlign)
@@ -207,4 +201,7 @@ nnoremap <leader>gb :Gblame<CR>
 let g:autopep8_disable_show_diff=1
 
 " deoplete
-let g:deoplete#enable_at_startup = 1
+let g:deoplete#enable_at_startup=1
+let g:deoplete#enable_ignore_case=1 
+" deoplete tab-complete
+inoremap <expr><tab> pumvisible() ? "\<c-n>" : "\<tab>"
