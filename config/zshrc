@@ -1,27 +1,32 @@
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+if [[ "$(uname -s)" == "Darwin " ]]; then
+    export PATH=$HOME/bin:/usr/local/bin:$PATH
+    export GOPATH=/Users/xiao/Dev/go
+    export https_proxy=http://127.0.0.1:6152
+    export http_proxy=http://127.0.0.1:6152
+    export ZSH=/Users/"$(whoami)"/.oh-my-zsh
+    alias surge="cd /Users/xiao/Library/Mobile\ Documents/iCloud~run~surge/Documents"
+    alias airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+    alias sublime="open -a Sublime\ Text"
+    alias notesdir="/Users/xiao/Dropbox/Document/MyNotes"
+    alias surge-cli="/Applications/Surge.app/Contents/Applications/surge-cli"
+    alias bru="brew update && brew upgrade; brew cleanup; brew cask cleanup"
+    alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
+    alias dev="cd ~/Dropbox/Dev"
+    source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+elif [[ "$(uname -s)" == "Linux" ]] then
+    export ZSH=/home/"$(whoami)/.oh-my-zsh"
+    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 export TERM="xterm-256color"
-export ZSH=/Users/xiao/.oh-my-zsh
 DEFAULT_USER="xiao"
-source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-export GOPATH=/Users/xiao/Dev/go
-export https_proxy=http://127.0.0.1:6152
-export http_proxy=http://127.0.0.1:6152
 export EDITOR='nvim'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
-alias surge="cd /Users/xiao/Library/Mobile\ Documents/iCloud~run~surge/Documents"
-alias airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
-alias sublime="open -a Sublime\ Text"
-alias notesdir="/Users/xiao/Dropbox/Document/MyNotes"
-alias surge-cli="/Applications/Surge.app/Contents/Applications/surge-cli"
-alias bru="brew update && brew upgrade; brew cleanup; brew cask cleanup"
 alias pip="/usr/local/bin/pip2.7"
 alias python="/usr/local/bin/python2"
-alias dev="cd ~/Dropbox/Dev"
 alias py="python"
 alias g="git"
 alias rzsh="source ~/.zshrc"
 alias vim="nvim"
-alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
 alias ssf="history | grep ssh | grep @ | fzf"
 alias killf="ps -ax | fzf | awk '{print $1}' | xargs kill"
 
@@ -73,7 +78,7 @@ HIST_STAMPS="mm/dd/yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git z fzf zsh-syntax-highlighting docker osx tmux)
+plugins=(git z docker tmux osx vagrant)
 # TMUX Settings
 ZSH_TMUX_AUTOSTART_ONCE="true"
 ZSH_TMUX_CONNECTING="true"
