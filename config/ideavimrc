@@ -1,0 +1,13 @@
+set number
+set relativenumber
+set ignorecase
+set smartcase
+set showmode
+set wrapscan
+set hlsearch
+set incsearch
+set matchpairs
+set surround
+" Share System clipboard
+set clipboard+=unnamed
+source ~/.config/nvim/init.vim

@@ -1,12 +1,10 @@
 go
 neovim
-python2
 python3
-gcc
-cmake
 tmux
 zsh
 curl
 wget
 zsh-syntax-highlighting
 z
+fzf
