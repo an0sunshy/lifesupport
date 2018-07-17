@@ -1,8 +1,11 @@
 if [[ "$(uname -s)" == "Darwin " ]]; then
     export PATH=$HOME/bin:/usr/local/bin:$PATH
     export GOPATH=/Users/xiao/Dev/go
-    export https_proxy=http://127.0.0.1:6152
-    export http_proxy=http://127.0.0.1:6152
+    curl -s --socks5 127.0.0.1:1080 ifconfig.co > /dev/null
+    if [[ $? == 0 ]]; then
+        export https_proxy=http://127.0.0.1:6152
+        export http_proxy=http://127.0.0.1:6152
+    fi
     export ZSH=/Users/"$(whoami)"/.oh-my-zsh
     alias surge="cd /Users/xiao/Library/Mobile\ Documents/iCloud~run~surge/Documents"
     alias airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
@@ -15,6 +18,11 @@ if [[ "$(uname -s)" == "Darwin " ]]; then
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 elif [[ "$(uname -s)" == "Linux" ]] then
     export ZSH=/home/"$(whoami)/.oh-my-zsh"
+    curl -s --socks5 127.0.0.1:1080 ifconfig.co > /dev/null
+    if [[ $? == 0 ]]; then
+        export http_proxy=socks5://127.0.0.1:1080
+        export https_proxy=socks://127.0.0.1:1080
+    fi
     source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 fi
 export TERM="xterm-256color"
