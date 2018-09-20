@@ -18,6 +18,7 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 elif [[ "$(uname -s)" = "Linux" ]]; then
     export ZSH="/home/$(whoami)/.oh-my-zsh"
+    export GOPATH=/home/xiao/dev/go
     curl -s --socks5 127.0.0.1:1080 ifconfig.co > /dev/null
     if [[ $? == 0 ]]; then
         export http_proxy=socks5://127.0.0.1:1080
