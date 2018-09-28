@@ -24,6 +24,13 @@ elif [[ "$(uname -s)" = "Linux" ]]; then
         export http_proxy=socks5://127.0.0.1:1080
         export https_proxy=socks5://127.0.0.1:1080
     fi
+    if [[ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then 
+        source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    fi
+    if [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh ]]; then
+        source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
+    fi
+
 fi
 export TERM="xterm-256color"
 DEFAULT_USER="xiao"
