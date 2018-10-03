@@ -17,6 +17,9 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias dev="cd ~/Dropbox/Dev"
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 elif [[ "$(uname -s)" = "Linux" ]]; then
+    if [[ "$XDG_CURRENT_DESKTOP" == "XFCE" ]]; then
+        alias setdpi="xfconf-query -c xsettings -p /Xft/DPI -s"
+    fi
     export ZSH="/home/$(whoami)/.oh-my-zsh"
     export GOPATH=/home/xiao/dev/go
     curl -s --socks5 127.0.0.1:1080 ifconfig.co > /dev/null
