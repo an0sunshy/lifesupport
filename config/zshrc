@@ -16,14 +16,26 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
     alias dev="cd ~/Dropbox/Dev"
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-elif [[ "$(uname -s)" = "Linux" ]] then
+elif [[ "$(uname -s)" = "Linux" ]]; then
+    if [[ "$XDG_CURRENT_DESKTOP" == "XFCE" ]]; then
+        alias setdpi="xfconf-query -c xsettings -p /Xft/DPI -s"
+    fi
+    # Fix Intellij not popping up with bspwm
+    export _JAVA_AWT_WM_NONREPARENTING=1
     export ZSH="/home/$(whoami)/.oh-my-zsh"
+    export GOPATH=/home/xiao/dev/go
     curl -s --socks5 127.0.0.1:1080 ifconfig.co > /dev/null
     if [[ $? == 0 ]]; then
         export http_proxy=socks5://127.0.0.1:1080
         export https_proxy=socks5://127.0.0.1:1080
     fi
-    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    if [[ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then 
+        source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    fi
+    if [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh ]]; then
+        source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
+    fi
+
 fi
 export TERM="xterm-256color"
 DEFAULT_USER="xiao"
