@@ -12,7 +12,7 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias sublime="open -a Sublime\ Text"
     alias notesdir="/Users/xiao/Dropbox/Document/MyNotes"
     alias surge-cli="/Applications/Surge.app/Contents/Applications/surge-cli"
-    alias bru="brew update && brew upgrade; brew cleanup; brew cask cleanup"
+    alias bru="brew update && brew upgrade; brew cleanup"
     alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
     alias dev="cd ~/Dropbox/Dev"
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
