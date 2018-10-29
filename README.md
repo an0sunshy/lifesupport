@@ -21,10 +21,13 @@ curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
 ```
 
 
-##Themes
+## Themes
 
 ### xfce4 termianl theme
 xfce4-terminal themes should be put under /usr/share/xfce4/terminal/colorschemes/
 
 ### iterm2 theme
 From [mhartington/oceanic-next-iterm](https://github.com/mhartington/oceanic-next-iterm)
+
+### Meslo Fonts
+From [powerline/fonts](https://github.com/powerline/fonts/blob/master/Meslo%20Dotted/Meslo%20LG%20M%20DZ%20Regular%20for%20Powerline.ttf)
