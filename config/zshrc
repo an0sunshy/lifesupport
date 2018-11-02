@@ -1,3 +1,11 @@
+function hfz () {
+    history | awk '{$1=$2=$3=""; print $0}' | fzf | xargs -I {} sh -c "{}"
+}
+
+function ssf () {
+    history | grep ssh | grep @ | awk '{$1=$2=$3=""; print $0}' | fzf | xargs -I {} sh -c "{}"
+}
+
 if [[ "$(uname -s)" = "Darwin" ]]; then
     export PATH=$HOME/bin:/usr/local/bin:$PATH
     export GOPATH=/Users/xiao/Dev/go
@@ -47,8 +55,9 @@ alias py="python"
 alias g="git"
 alias rzsh="source ~/.zshrc"
 alias vim="nvim"
-alias ssf="history | grep ssh | grep @ | fzf"
-alias killf="ps -ax | fzf | awk '{print $1}' | xargs kill"
+#alias ssf="sh -c $(history | grep ssh | grep @ | awk '{$1=$2=$3=""; print $0}' | fzf)"
+#alias killf="ps -ax | fzf | awk '{print $1}' | xargs kill"
+
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/

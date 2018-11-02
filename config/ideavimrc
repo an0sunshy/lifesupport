@@ -9,5 +9,5 @@ set incsearch
 set matchpairs
 set surround
 " Share System clipboard
-set clipboard+=unnamed
+set clipboard+=unnamedplus
 source ~/.config/nvim/init.vim
