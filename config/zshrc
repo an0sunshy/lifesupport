@@ -1,11 +1,3 @@
-function hfz () {
-    history | awk '{$1=$2=$3=""; print $0}' | fzf | xargs -I {} sh -c "{}"
-}
-
-function ssf () {
-    history | grep ssh | grep @ | awk '{$1=$2=$3=""; print $0}' | fzf | xargs -I {} sh -c "{}"
-}
-
 if [[ "$(uname -s)" = "Darwin" ]]; then
     export PATH=$HOME/bin:/usr/local/bin:$PATH
     export GOPATH=/Users/xiao/Dev/go
@@ -147,4 +139,9 @@ export LANG=en_US.UTF-8
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 if [ -f ~/.secrets ]; then
     source ~/.secrets
+fi
+if [ -f /bin/fzf ]; then 
+    function hfz () {
+        history | awk '{$1=$2=$3=""; print $0}' | fzf | xargs -I {} sh -c "{}"
+    }
 fi
