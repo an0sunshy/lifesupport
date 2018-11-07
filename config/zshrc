@@ -18,6 +18,7 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 elif [[ "$(uname -s)" = "Linux" ]]; then
     if [[ "$XDG_CURRENT_DESKTOP" == "XFCE" ]]; then
+        setxkbmap -option ctrl:swapcaps
         alias setdpi="xfconf-query -c xsettings -p /Xft/DPI -s"
     fi
     # Fix Intellij not popping up with bspwm
@@ -50,6 +51,8 @@ alias vim="nvim"
 #alias ssf="sh -c $(history | grep ssh | grep @ | awk '{$1=$2=$3=""; print $0}' | fzf)"
 #alias killf="ps -ax | fzf | awk '{print $1}' | xargs kill"
 
+# Section for google-cloud-sdk alias
+alias gce="gcloud compute"
 
 # Set name of the theme to load.
 # Look in ~/.oh-my-zsh/themes/
