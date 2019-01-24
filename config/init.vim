@@ -101,6 +101,9 @@ set clipboard^=unnamedplus
 " fzf from Homebrew
 set rtp+=/usr/local/opt/fzf
 
+" Remap ESC key
+inoremap jk <Esc>
+
 " Better split switching
 map <C-j> <C-W>j
 map <C-k> <C-W>k
