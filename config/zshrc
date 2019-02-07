@@ -15,7 +15,10 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias bru="brew update && brew upgrade; brew cleanup"
     alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
     alias dev="cd ~/Dropbox/Dev"
+    source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    export LDFLAGS="-L/usr/local/opt/libffi/lib"
+    export PKG_CONFIG_PATH="/usr/local/opt/libffi/lib/pkgconfig"
 elif [[ "$(uname -s)" = "Linux" ]]; then
     if [[ "$XDG_CURRENT_DESKTOP" == "XFCE" ]]; then
         alias setdpi="xfconf-query -c xsettings -p /Xft/DPI -s"
