@@ -24,7 +24,6 @@ call plug#begin()
   Plug 'vim-airline/vim-airline-themes'
   Plug 'airblade/vim-gitgutter'
 " Plug 'altercation/vim-colors-solarized'
-" Plug 'plasticboy/vim-markdown'
   Plug 'mhinz/vim-startify'
 
 " navigation
@@ -103,6 +102,15 @@ set rtp+=/usr/local/opt/fzf
 
 " Remap ESC key
 inoremap jk <Esc>
+
+" Remove a line in insert mode with C-d
+inoremap <C-d> <Esc>ddi
+
+" Leader-" to quote a word
+nnoremap <leader>" viw<esc>a"<esc>hbi"<esc>lel
+
+" Delete params in ()
+onoremap p i(
 
 " Better split switching
 map <C-j> <C-W>j
