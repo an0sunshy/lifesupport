@@ -1,12 +1,8 @@
 if [[ "$(uname -s)" = "Darwin" ]]; then
     export PATH=$HOME/bin:/usr/local/bin:$PATH
     export GOPATH=/Users/xiao/Dev/go
+    export PATH=$PATH:$GOPATH/bin    
     export ZSH="/Users/$(whoami)/.oh-my-zsh"
-    curl -s --socks5 127.0.0.1:1080 ifconfig.co > /dev/null
-    if [[ $? == 0 ]]; then
-        export https_proxy=http://127.0.0.1:6152
-        export http_proxy=http://127.0.0.1:6152
-    fi
     alias surge="cd /Users/xiao/Library/Mobile\ Documents/iCloud~run~surge/Documents"
     alias airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
     alias sublime="open -a Sublime\ Text"
