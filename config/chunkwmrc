@@ -24,10 +24,10 @@ chunkc core::unload border.so
 chunkc set global_desktop_mode           bsp
 
 chunkc set global_desktop_offset_top     10
-chunkc set global_desktop_offset_bottom  10
-chunkc set global_desktop_offset_left    10
-chunkc set global_desktop_offset_right   10
-chunkc set global_desktop_offset_gap     5
+chunkc set global_desktop_offset_bottom  8
+chunkc set global_desktop_offset_left    5
+chunkc set global_desktop_offset_right   5
+chunkc set global_desktop_offset_gap     8
 
 chunkc set desktop_padding_step_size     10.0
 chunkc set desktop_gap_step_size         5.0
@@ -63,3 +63,9 @@ chunkc set focused_border_skip_floating  0
 
 chunkc core::load border.so
 chunkc core::load tiling.so
+
+
+chunkc tiling::rule --owner Finder --name Copy --state float &
+chunkc tiling::rule --owner \"App Store\" --state float &
+chunkc tiling::rule --owner Tweetbot --state float &
+# chunkc tiling::rule --owner iTerm --state float &
