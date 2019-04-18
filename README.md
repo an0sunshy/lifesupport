@@ -31,3 +31,13 @@ From [mhartington/oceanic-next-iterm](https://github.com/mhartington/oceanic-nex
 
 ### Meslo Fonts
 From [powerline/fonts](https://github.com/powerline/fonts/blob/master/Meslo%20Dotted/Meslo%20LG%20M%20DZ%20Regular%20for%20Powerline.ttf)
+
+## chunkwm for macOS
+```bash
+brew install chunkwm
+brew install koekeishiya/formulae/skhd
+
+# Enable as services
+brew services start chunkwm
+brew services skbd
+```
