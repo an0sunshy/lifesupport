@@ -68,4 +68,7 @@ chunkc core::load tiling.so
 chunkc tiling::rule --owner Finder --name Copy --state float &
 chunkc tiling::rule --owner \"App Store\" --state float &
 chunkc tiling::rule --owner Tweetbot --state float &
+chunkc tiling::rule --owner Drafts --state float &
+chunkc tiling::rule --owner \"Surge 3\" --state float &
+chunkc tiling::rule --owner \"Surge Dashboard\" --state float &
 # chunkc tiling::rule --owner iTerm --state float &
