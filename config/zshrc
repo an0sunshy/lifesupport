@@ -10,7 +10,7 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias surge-cli="/Applications/Surge.app/Contents/Applications/surge-cli"
     alias bru="brew update && brew upgrade; brew cleanup"
     alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
-    alias dev="cd ~/Dropbox/Dev"
+    alias dev="cd ~/dev"
     source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
     export LDFLAGS="-L/usr/local/opt/libffi/lib"

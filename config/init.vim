@@ -217,3 +217,6 @@ let g:deoplete#enable_at_startup=1
 let g:deoplete#enable_ignore_case=1 
 " deoplete tab-complete
 inoremap <expr><tab> pumvisible() ? "\<c-n>" : "\<tab>"
+" vim-plug
+let g:go_version_warning = 0
+
