@@ -11,6 +11,7 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias bru="brew update && brew upgrade; brew cleanup"
     alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
     alias dev="cd ~/Dropbox/Dev"
+    alias git="hub"
     source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
     source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
     export LDFLAGS="-L/usr/local/opt/libffi/lib"
@@ -41,6 +42,10 @@ export TERM="xterm-256color"
 DEFAULT_USER="xiao"
 export EDITOR='nvim'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+alias pjson="python3 -m json.tool"
+alias ll="ls -alh"
+# activate venv
+alias avenv="source ./env/bin/activate"
 alias pip="/usr/local/bin/pip2.7"
 alias python="/usr/local/bin/python2"
 alias py="python"
