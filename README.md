@@ -41,3 +41,10 @@ brew install koekeishiya/formulae/skhd
 brew services start chunkwm
 brew services skbd
 ```
+
+## Use Mirrors for Repo - Ubuntu
+```
+sed -i 's/http:\/\/archive.ubuntu.com\/ubuntu/mirror:\/\/mirrors.ubuntu.com\/mirrors.txt/g' /etc/apt/sources.list
+# if mirror method is not found, then do
+apt install apt-transport-https
+```
