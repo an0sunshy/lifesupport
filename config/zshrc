@@ -52,6 +52,8 @@ alias py="python"
 alias g="git"
 alias rzsh="source ~/.zshrc"
 alias vim="nvim"
+# Persist sshfs
+alias sshfsp="sshfs -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3"
 #alias ssf="sh -c $(history | grep ssh | grep @ | awk '{$1=$2=$3=""; print $0}' | fzf)"
 #alias killf="ps -ax | fzf | awk '{print $1}' | xargs kill"
 
