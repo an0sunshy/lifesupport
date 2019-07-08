@@ -4,7 +4,9 @@
 call plug#begin()
 " completion/coding
 "  Plug 'roxma/nvim-completion-manager' 
+  "Plug 'neoclide/coc.nvim', {'branch': 'release'}
   Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+  Plug 'deoplete-plugins/deoplete-jedi'
   Plug 'jiangmiao/auto-pairs' "自动括号匹配
   Plug 'scrooloose/nerdcommenter'
   Plug 'tpope/vim-surround'
@@ -215,6 +217,7 @@ let g:autopep8_disable_show_diff=1
 let g:python3_host_prog='/usr/local/bin/python3'
 let g:deoplete#enable_at_startup=1
 let g:deoplete#enable_ignore_case=1 
+let g:deoplete#sources#jedi#show_docstring=1
 " deoplete tab-complete
 inoremap <expr><tab> pumvisible() ? "\<c-n>" : "\<tab>"
 " vim-plug
