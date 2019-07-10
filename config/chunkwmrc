@@ -23,16 +23,16 @@ chunkc core::unload border.so
 
 chunkc set global_desktop_mode           bsp
 
-chunkc set global_desktop_offset_top     10
-chunkc set global_desktop_offset_bottom  8
-chunkc set global_desktop_offset_left    5
-chunkc set global_desktop_offset_right   5
-chunkc set global_desktop_offset_gap     8
+chunkc set global_desktop_offset_top     20
+chunkc set global_desktop_offset_bottom  20
+chunkc set global_desktop_offset_left    15
+chunkc set global_desktop_offset_right   15
+chunkc set global_desktop_offset_gap     15
 
 chunkc set desktop_padding_step_size     10.0
 chunkc set desktop_gap_step_size         5.0
 
-chunkc set bsp_spawn_left                1
+chunkc set bsp_spawn_left                2
 chunkc set bsp_optimal_ratio             1.618
 chunkc set bsp_split_mode                optimal
 chunkc set bsp_split_ratio               0.5
@@ -72,4 +72,5 @@ chunkc tiling::rule --owner Drafts --state float &
 chunkc tiling::rule --owner \"Surge 3\" --state float &
 chunkc tiling::rule --owner \"Surge Dashboard\" --state float &
 chunkc tiling::rule --owner Fantastical --state float &
+chunkc tiling::rule --owner \"Alfred Preferences\" --state float &
 # chunkc tiling::rule --owner iTerm --state float &
