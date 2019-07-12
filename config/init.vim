@@ -8,7 +8,6 @@ call plug#begin()
   Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
   Plug 'deoplete-plugins/deoplete-jedi'
   Plug 'jiangmiao/auto-pairs' "自动括号匹配
-  Plug 'scrooloose/nerdcommenter'
   Plug 'tpope/vim-surround'
   Plug 'junegunn/vim-easy-align'
   Plug 'scrooloose/nerdcommenter'
