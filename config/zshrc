@@ -39,7 +39,7 @@ elif [[ "$(uname -s)" = "Linux" ]]; then
 
 fi
 export TERM="xterm-256color"
-DEFAULT_USER="xiao"
+DEFAULT_USER=`whoami`
 export EDITOR='nvim'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 alias pjson="python3 -m json.tool"
