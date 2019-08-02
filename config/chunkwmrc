@@ -73,4 +73,5 @@ chunkc tiling::rule --owner \"Surge 3\" --state float &
 chunkc tiling::rule --owner \"Surge Dashboard\" --state float &
 chunkc tiling::rule --owner Fantastical --state float &
 chunkc tiling::rule --owner \"Alfred Preferences\" --state float &
+chunkc tiling::rule --owner \"DaisyDisk\" --state float &
 # chunkc tiling::rule --owner iTerm --state float &
