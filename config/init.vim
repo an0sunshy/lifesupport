@@ -15,7 +15,7 @@ call plug#begin()
 
 " Theme
   Plug 'mhartington/oceanic-next'
-  Plug 'arcticicestudio/nord-vim'
+"  Plug 'arcticicestudio/nord-vim'
 
 " looking
   Plug 'Yggdroot/indentLine'
