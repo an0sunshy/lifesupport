@@ -92,7 +92,7 @@ set tabstop=4
 set shiftwidth=4
 set smartindent
 set expandtab
-set conceallevel=2
+set conceallevel=0
 
 set clipboard^=unnamed
 set clipboard^=unnamedplus
