@@ -8,16 +8,13 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/mas
 ### Install .tmux
 From [gpakosz/.tmux](https://github.com/gpakosz/.tmux)
 ```bash
-cd
-git clone https://github.com/gpakosz/.tmux.git
-ln -s -f .tmux/.tmux.conf
+git clone https://github.com/gpakosz/.tmux.git ~/.tmux && ln -s -f .tmux/.tmux.conf
 ```
 
 ### Install Vim-Plug for Neovim
 From [junegunn/vim-plug](https://github.com/junegunn/vim-plug)
 ```bash
-curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 ```
 
 
@@ -45,6 +42,9 @@ brew services skbd
 ## Use Mirrors for Repo - Ubuntu
 ```
 sed -i 's/http:\/\/archive.ubuntu.com\/ubuntu/mirror:\/\/mirrors.ubuntu.com\/mirrors.txt/g' /etc/apt/sources.list
+```
+
 # if mirror method is not found, then do
+```
 apt install apt-transport-https
 ```
