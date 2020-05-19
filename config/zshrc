@@ -158,3 +158,27 @@ if [ -f /bin/fzf ]; then
         history | awk '{$1=$2=$3=""; print $0}' | fzf | xargs -I {} sh -c "{}"
     }
 fi
+
+function extract () {
+    for f in $@; do
+        if [ -f $f ] ; then
+            case $f in
+                *.tar.bz2)   tar xjf $f     ;;
+                *.tar.gz)    tar xzf $f     ;;
+                *.bz2)       bunzip2 $f     ;;
+                *.rar)       unrar e $f     ;;
+                *.gz)        gunzip $f      ;;
+                *.tar)       tar xf $f      ;;
+                *.tbz2)      tar xjf $f     ;;
+                *.tgz)       tar xzf $f     ;;
+                *.zip)       unzip $f       ;;
+                *.Z)         uncompress $f  ;;
+                *.7z)        7z x $f        ;;
+                *)     echo "'$f' cannot be extracted via extract()" ;;
+            esac
+        else
+            echo "'$f' is not a valid file"
+        fi
+    done
+}
+source /usr/local/share/zsh/site-functions/_aws
