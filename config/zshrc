@@ -62,6 +62,7 @@ alias sshfsp="sshfs -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3"
 alias lcc='leetcode-cli'
 #alias ssf="sh -c $(history | grep ssh | grep @ | awk '{$1=$2=$3=""; print $0}' | fzf)"
 #alias killf="ps -ax | fzf | awk '{print $1}' | xargs kill"
+alias jqs="jq --sort-keys"
 
 # Section for google-cloud-sdk alias
 alias gce="gcloud compute"
