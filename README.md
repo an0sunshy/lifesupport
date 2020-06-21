@@ -1,33 +1,36 @@
 
 ### Install Oh-my-zsh
+
+Make sure zsh has been installed from package manager and then
+
 From [robbyrussell/oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+make zsh
 ```
 
 ### Install .tmux
 From [gpakosz/.tmux](https://github.com/gpakosz/.tmux)
 ```bash
-git clone https://github.com/gpakosz/.tmux.git ~/.tmux && ln -s -f .tmux/.tmux.conf
+git clone https://github.com/gpakosz/.tmux.git ~/.tmux && ln -s -f ~/.tmux/.tmux.conf ~/.tmux.conf
 ```
 
 ### Install Vim-Plug for Neovim
 From [junegunn/vim-plug](https://github.com/junegunn/vim-plug)
 ```bash
-curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+make vim-plug
 ```
 
+### Kitty
+Install kitty from package manager and then 
+```bash
+make kitty
+```
 
-## Themes
-
-### xfce4 termianl theme
-xfce4-terminal themes should be put under /usr/share/xfce4/terminal/colorschemes/
-
-### iterm2 theme
-From [mhartington/oceanic-next-iterm](https://github.com/mhartington/oceanic-next-iterm)
-
-### Meslo Fonts
-From [powerline/fonts](https://github.com/powerline/fonts/blob/master/Meslo%20Dotted/Meslo%20LG%20M%20DZ%20Regular%20for%20Powerline.ttf)
+### Nvim
+Install neovim from package manager and then
+```bash
+make neovim
+```
 
 ## chunkwm for macOS
 ```bash
@@ -40,11 +43,15 @@ brew services skbd
 ```
 
 ## Use Mirrors for Repo - Ubuntu
-```
-sed -i 's/http:\/\/archive.ubuntu.com\/ubuntu/mirror:\/\/mirrors.ubuntu.com\/mirrors.txt/g' /etc/apt/sources.list
+```bash
+make ubuntu-mirror
+sudo make ubuntu-mirror
 ```
 
-# if mirror method is not found, then do
-```
-apt install apt-transport-https
-```
+## Themes
+
+### xfce4 termianl theme
+xfce4-terminal themes should be put under /usr/share/xfce4/terminal/colorschemes/
+
+### Meslo Fonts
+From [powerline/fonts](https://github.com/powerline/fonts/blob/master/Meslo%20Dotted/Meslo%20LG%20M%20DZ%20Regular%20for%20Powerline.ttf)
