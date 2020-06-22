@@ -58,7 +58,11 @@ yabai -m rule --add label="Dictionary" app="^Dictionary$" manage=off
 yabai -m rule --add label="Surge 3" app="^Surge 3$" manage=off
 yabai -m rule --add label="Surge Dashboard" app="^Surge Dashboard$" manage=off
 yabai -m rule --add label="Fantastical" app="^Fantastical$" manage=off
+yabai -m rule --add label="Calendar" app="^Calendar$" manage=off
 yabai -m rule --add label="Drafts" app="^Drafts$" manage=off
 yabai -m rule --add label="Tweetbot" app="^Tweetbot$" manage=off
 yabai -m rule --add label="DaisyDisk" app="^DaisyDisk$" manage=off
+yabai -m rule --add label="Amazon Chime" app="^Amazon Chime$" manage=off
 yabai -m rule --add label="Alfred Preferences" app="^Alfred Preferences$" manage=off
+yabai -m rule --add label="Microsoft Outlook" app="^Microsoft Outlook$" manage=off
+yabai -m rule --add label="Cisco AnyConnect Secure Mobility Client" app="^Cisco AnyConnect Secure Mobility Client$" manage=off
