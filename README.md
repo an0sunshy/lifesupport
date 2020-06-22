@@ -32,14 +32,16 @@ Install neovim from package manager and then
 make neovim
 ```
 
-## chunkwm for macOS
+## yabai and skhd for macOS
 ```bash
-brew install chunkwm
+brew install koekeishiya/formulae/yabai
 brew install koekeishiya/formulae/skhd
+make yabai
+make skhd
 
 # Enable as services
-brew services start chunkwm
-brew services skbd
+brew services start yabai
+brew services start skbd
 ```
 
 ## Use Mirrors for Repo - Ubuntu
