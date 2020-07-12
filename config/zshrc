@@ -182,4 +182,7 @@ function extract () {
         fi
     done
 }
-source /usr/local/share/zsh/site-functions/_aws
+
+if [ -f /usr/local/share/zsh/site-functions/_aws ]; then 
+    source /usr/local/share/zsh/site-functions/_aws
+fi
