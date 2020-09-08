@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+#!/usr/bin/env bash 
 # ====== Variables =============================
 
 gaps_top="20"
@@ -67,4 +66,4 @@ yabai -m rule --add label="Alfred Preferences" app="^Alfred Preferences$" manage
 yabai -m rule --add label="Microsoft Outlook" app="^Microsoft Outlook$" manage=off
 yabai -m rule --add label="Cisco AnyConnect Secure Mobility Client" app="^Cisco AnyConnect Secure Mobility Client$" manage=off
 yabai -m rule --add label="Tor Browser" app="^Tor Browser$" manage=off
-
+yabai -m rule --add label="Slack" app="^Slack$" manage=off
