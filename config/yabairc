@@ -67,3 +67,4 @@ yabai -m rule --add label="Microsoft Outlook" app="^Microsoft Outlook$" manage=o
 yabai -m rule --add label="Cisco AnyConnect Secure Mobility Client" app="^Cisco AnyConnect Secure Mobility Client$" manage=off
 yabai -m rule --add label="Tor Browser" app="^Tor Browser$" manage=off
 yabai -m rule --add label="Slack" app="^Slack$" manage=off
+yabai -m rule --add label="Bitwarden" app="^Bitwarden$" manage=off
