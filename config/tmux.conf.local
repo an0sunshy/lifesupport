@@ -266,3 +266,17 @@ bind f send-prefix
 
 # move status line to top
 #set -g status-position top
+# Disable tmux with F12 for nested session
+bind -T root F12 \
+  set prefix None \;\
+  set key-table off \;\
+  set status-left "#[fg=colour232,bg=colour245,bold] #S \
+#[fg=colour245,bg=colour240,nobold]#[fg=colour233,bg=colour240] \
+#(whoami) #[fg=colour240,bg=colour235]#[fg=colour240,bg=colour235] \
+#I:#P #[fg=colour235,bg=colour233,nobold]" \;\
+  refresh-client -S
+bind -T off F12 \
+  set -u prefix \;\
+  set -u key-table \;\
+  set -u status-left \;\
+  refresh-client -S
