@@ -4,10 +4,10 @@
 call plug#begin()
 " completion/coding
 "  Plug 'roxma/nvim-completion-manager' 
-  "Plug 'neoclide/coc.nvim', {'branch': 'release'}
-  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-  Plug 'deoplete-plugins/deoplete-jedi'
-  Plug 'jiangmiao/auto-pairs' "自动括号匹配
+  " Plug 'neoclide/coc.nvim', {'branch': 'release'}
+  " Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+  " Plug 'deoplete-plugins/deoplete-jedi'
+  Plug 'jiangmiao/auto-pairs'
   Plug 'tpope/vim-surround'
   Plug 'junegunn/vim-easy-align'
   Plug 'scrooloose/nerdcommenter'
