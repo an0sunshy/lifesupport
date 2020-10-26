@@ -13,6 +13,7 @@ ideavimrc:
 kitty:
 	-mkdir -p ~/.config/kitty
 	ln -s -f $(CURDIR)/config/kitty.conf ~/.config/kitty/kitty.conf
+	ln -s -f $(CURDIR)/config/kitty.theme.conf ~/.config/kitty/theme.conf
 
 neovim:
 	-mkdir -p  ~/.config/nvim
