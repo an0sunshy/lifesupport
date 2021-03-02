@@ -1,4 +1,5 @@
 if [[ "$(uname -s)" = "Darwin" ]]; then
+    export HOMEBREW_NO_ANALYTICS=1
     export PATH=$HOME/bin:/usr/local/bin:$PATH
     export GOPATH=/Users/xiao/Dev/go
     export PATH=$PATH:$GOPATH/bin    
@@ -6,20 +7,23 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias surge="cd /Users/xiao/Library/Mobile Documents/iCloud~com~nssurge~inc/Documents"
     alias airport="/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
     alias sublime="open -a Sublime\ Text"
-    alias notesdir="/Users/xiao/Dropbox/Document/MyNotes"
     alias surge-cli="/Applications/Surge.app/Contents/Applications/surge-cli"
     alias bru="brew update && brew upgrade; brew cleanup"
-    alias ipmitool="/usr/local/Cellar/ipmitool/1.8.18_2/bin/ipmitool"
-    alias dev="cd ~/Dropbox/Dev"
-    alias git="hub"
-    source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-    source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    alias dev="cd ~/SynologyDrive/Dev"
     export LDFLAGS="-L/usr/local/opt/libffi/lib"
     export PKG_CONFIG_PATH="/usr/local/opt/libffi/lib/pkgconfig"
-    # Workaround for pip getting aborted on Catalina
-    export DYLD_LIBRARY_PATH=/usr/local/opt/openssl/lib:$DYLD_LIBRARY_PATH
     [ -f /usr/local/bin/exa ] && alias ls="exa"
     ZSH_THEME='agnoster'
+    if [[ -f /usr/bin/arch && $(arch -arm64 uname -p) == "arm" ]]; then
+    	export PATH=/opt/homebrew/bin/:$PATH
+    	source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+    	source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+        alias x86="arch -x86_64"
+        alias arm="arch -arm64"
+    else
+    	source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+    	source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    fi
 elif [[ "$(uname -s)" = "Linux" ]]; then
     if [[ "$XDG_CURRENT_DESKTOP" == "XFCE" ]]; then
         alias setdpi="xfconf-query -c xsettings -p /Xft/DPI -s"
@@ -186,3 +190,7 @@ function extract () {
 if [ -f /usr/local/share/zsh/site-functions/_aws ]; then 
     source /usr/local/share/zsh/site-functions/_aws
 fi
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
