@@ -74,3 +74,6 @@ shift + ctrl + alt - r :
 # Make window native fullscreen
 alt - f         : yabai -m window --toggle zoom-fullscreen
 shift + alt - f : yabai -m window --toggle native-fullscreen
+
+# Toggle Kitty
+cmd + shift - i : "${HOME}"/.scripts/toggle_kitty.sh

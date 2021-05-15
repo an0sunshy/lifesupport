@@ -37,6 +37,7 @@ yabai:
 
 skhd:
 	ln -s -f $(CURDIR)/config/skhdrc ~/.skhdrc
+	ln -s -f $(CURDIR)/scripts ~/.scripts
 
 zsh:
 	curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
