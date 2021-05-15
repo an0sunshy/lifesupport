@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if ! pgrep -f "kitty" > /dev/null 2>&1; then
     open -a "/Applications/kitty.app"
 else
