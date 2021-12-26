@@ -113,7 +113,12 @@ HIST_STAMPS="mm/dd/yyyy"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git z docker tmux osx vagrant)
+plugins=(
+    git
+    z 
+    docker 
+    tmux 
+)
 # TMUX Settings
 ZSH_TMUX_AUTOSTART_ONCE="true"
 ZSH_TMUX_CONNECTING="true"
