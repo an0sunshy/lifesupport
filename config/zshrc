@@ -118,6 +118,7 @@ plugins=(
     z 
     docker 
     tmux 
+    vi-mode
 )
 # TMUX Settings
 ZSH_TMUX_AUTOSTART_ONCE="true"
