@@ -68,3 +68,5 @@ yabai -m rule --add label="Cisco AnyConnect Secure Mobility Client" app="^Cisco 
 yabai -m rule --add label="Tor Browser" app="^Tor Browser$" manage=off
 yabai -m rule --add label="Slack" app="^Slack$" manage=off
 yabai -m rule --add label="Bitwarden" app="^Bitwarden$" manage=off
+yabai -m rule --add label="Steam" app="^Steam$" manage=off
+yabai -m rule --add label="Civilization VI" app="^Civilization VI$" manage=off
