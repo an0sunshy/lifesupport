@@ -56,4 +56,4 @@ sudo make ubuntu-mirror
 xfce4-terminal themes should be put under /usr/share/xfce4/terminal/colorschemes/
 
 ### Meslo Fonts
-From [powerline/fonts](https://github.com/powerline/fonts/blob/master/Meslo%20Dotted/Meslo%20LG%20M%20DZ%20Regular%20for%20Powerline.ttf)
+From [nerd-fonts](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/Meslo/M-DZ)
