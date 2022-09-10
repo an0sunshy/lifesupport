@@ -42,3 +42,6 @@ skhd:
 zsh:
 	curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
 	ln -s -f $(CURDIR)/config/zshrc ~/.zshrc
+
+zsh-completion:
+	git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh}/custom}/plugins/zsh-completions
