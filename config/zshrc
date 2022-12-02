@@ -106,6 +106,7 @@ plugins=(
     docker 
     docker-compose
     extract
+    fzf
     git
     nmap
     nvm
