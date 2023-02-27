@@ -39,7 +39,11 @@ elif [[ "$(uname -s)" = "Linux" ]]; then
     if [[ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh ]]; then
         source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.plugin.zsh
     fi
-    ZSH_THEME=robbyrussell
+    if uname -r | grep -q 'WSL'; then
+        ZSH_THEME="agnoster"
+    else
+        ZSH_THEME="robbyrussell"
+    fi
 fi
 export TERM="xterm-256color"
 DEFAULT_USER=`whoami`
