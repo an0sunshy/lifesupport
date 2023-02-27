@@ -94,7 +94,6 @@ set smartindent
 set expandtab
 set conceallevel=0
 
-set clipboard^=unnamed
 set clipboard^=unnamedplus
 
 
