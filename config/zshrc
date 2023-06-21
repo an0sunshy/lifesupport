@@ -117,7 +117,6 @@ plugins=(
     fzf
     git
     nmap
-    nvm
     rsync
     rust
     tmux 
