@@ -20,8 +20,7 @@ neovim:
 	ln -s -f $(CURDIR)/config/init.vim ~/.config/nvim/init.vim
 
 tmux:
-	git clone https://github.com/gpakosz/.tmux.git ~/.tmux && ln -s -f ~/.tmux/.tmux.conf ~/.tmux.conf
-	ln -s -f $(CURDIR)/config/tmux.conf.local ~/.tmux.conf.local
+	ln -s -f $(CURDIR)/config/tmux.conf ~/.tmux.conf
 
 ubuntu-mirror:
 	apt install apt-transport-https
