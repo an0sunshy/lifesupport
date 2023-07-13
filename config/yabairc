@@ -73,3 +73,4 @@ yabai -m rule --add label="Slack" app="^Slack$" manage=off
 yabai -m rule --add label="Bitwarden" app="^Bitwarden$" manage=off
 yabai -m rule --add label="Steam" app="^Steam$" manage=off
 yabai -m rule --add label="Civilization VI" app="^Civilization VI$" manage=off
+yabai -m rule --add label="Simulator" app="^Simulator$" manage=off
