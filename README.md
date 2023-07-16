@@ -1,35 +1,39 @@
 
+### macOS and homebrew
+
+Install homebrew
+```bash
+curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh | sh
+```
+
+Load from bundle
+```bash
+brew bundle
+```
+
+Dump to bundle
+```bash
+brew bundle dump
+```
+
 ### Install Oh-my-zsh
 
 Make sure zsh has been installed from package manager and then
 
 From [robbyrussell/oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh)
 ```bash
-make zsh
+curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
 ```
 
-### Install .tmux
-From [gpakosz/.tmux](https://github.com/gpakosz/.tmux)
+Install zsh-completion
 ```bash
-git clone https://github.com/gpakosz/.tmux.git ~/.tmux && ln -s -f ~/.tmux/.tmux.conf ~/.tmux.conf
+git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh}/custom}/plugins/zsh-completions
 ```
 
 ### Install Vim-Plug for Neovim
 From [junegunn/vim-plug](https://github.com/junegunn/vim-plug)
 ```bash
-make vim-plug
-```
-
-### Kitty
-Install kitty from package manager and then 
-```bash
-make kitty
-```
-
-### Nvim
-Install neovim from package manager and then
-```bash
-make neovim
+curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 ```
 
 ## yabai and skhd for macOS
@@ -40,14 +44,16 @@ make yabai
 make skhd
 
 # Enable as services
-brew services start yabai
-brew services start skbd
+yabai --install-service
+yabai --start-service
+skhd --install-service
+skhd --start-service
 ```
 
 ## Use Mirrors for Repo - Ubuntu
 ```bash
-make ubuntu-mirror
-sudo make ubuntu-mirror
+apt install apt-transport-https
+sed -i 's/http:\/\/archive.ubuntu.com\/ubuntu/mirror:\/\/mirrors.ubuntu.com\/mirrors.txt/g' /etc/apt/sources.list
 ```
 
 ## Themes
