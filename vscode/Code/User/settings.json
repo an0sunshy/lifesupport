@@ -1,0 +1,181 @@
+{
+    "telemetry.telemetryLevel": "off",
+    "aws.telemetry": false,
+    "workbench.colorTheme": "Oceanic Next",
+    "window.title": "${folderName}/${activeEditorShort}",
+    "editor.fontFamily": "MesloLGMDZ Nerd Font, Menlo, Monaco, 'Courier New', monospace",
+    "editor.fontSize": 14,
+    "terminal.integrated.fontSize": 14,
+    "debug.console.fontFamily": "MesloLGMDZ Nerd Font",
+    "editor.cursorStyle": "block",
+    "editor.cursorBlinking": "solid",
+    "editor.formatOnPaste": true,
+    "files.autoSave": "onFocusChange",
+    "extensions.autoUpdate": true,
+    "editor.lineNumbers": "relative",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.addMissingImports": true,
+        "source.organizeImports": true
+    },
+    "terminal.external.osxExec": "kitty.app",
+    "terminal.integrated.customGlyphs": false,
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "workbench.startupEditor": "readme",
+    "workbench.editor.enablePreview": false,
+    "vim.easymotion": true,
+    "vim.incsearch": true,
+    "vim.useSystemClipboard": true,
+    "vim.useCtrlKeys": true,
+    "vim.hlsearch": true,
+    "vim.leader": "<space>",
+    "jupyter.interactiveWindow.creationMode": "perFile",
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/tmp/**": true,
+        "**/dist/**": true
+    },
+    "vim.statusBarColorControl": true,
+    "vim.statusBarColors.normal": [
+        "#1B2B34",
+        "#D8DEE9"
+    ],
+    "vim.statusBarColors.insert": [
+        "#CDD3DE",
+    ],
+    "vim.statusBarColors.visual": [
+        "#99C794",
+        "#343D46"
+    ],
+    "vim.statusBarColors.visualline": [
+        "#99C794",
+        "#343D46"
+    ],
+    "vim.statusBarColors.visualblock": [
+        "#99C794",
+        "#343D46"
+    ],
+    "vim.statusBarColors.replace": [
+        "#EC5f67",
+        "#343D46"
+    ],
+    "vim.statusBarColors.commandlineinprogress": "#4F5B66",
+    "vim.statusBarColors.searchinprogressmode": "#4F5B66",
+    "vim.statusBarColors.easymotionmode": "#4F5B66",
+    "vim.statusBarColors.easymotioninputmode": "#4F5B66",
+    "vim.statusBarColors.surroundinputmode": "#4F5B66",
+    "workbench.colorCustomizations": {
+        "statusBar.background": "#1B2B34",
+        "statusBar.noFolderBackground": "#1B2B34",
+        "statusBar.debuggingBackground": "#1B2B34",
+        "statusBar.foreground": "#D8DEE9",
+        "statusBar.debuggingForeground": "#D8DEE9"
+    },
+    "vim.normalModeKeyBindingsNonRecursive": [
+        {
+            "before": [
+                "<leader>",
+                "r"
+            ],
+            "commands": [
+                "editor.action.rename"
+            ]
+        },
+        {
+            "after": [
+                "g",
+                "g",
+                "V",
+                "G"
+            ],
+            "before": [
+                "<c-a>"
+            ]
+        },
+        {
+            "before": [
+                "<leader>",
+                "c",
+                "a"
+            ],
+            "commands": [
+                "editor.action.quickFix"
+            ]
+        },
+        {
+            "before": [
+                "g",
+                "d"
+            ],
+            "commands": [
+                "editor.action.goToImplementation"
+            ]
+        },
+        {
+            "before": [
+                "<C-h>"
+            ],
+            "after": [
+                "<C-w>",
+                "h"
+            ]
+        },
+        {
+            "before": [
+                "<C-j>"
+            ],
+            "after": [
+                "<C-w>",
+                "j"
+            ]
+        },
+        {
+            "before": [
+                "<C-k>"
+            ],
+            "after": [
+                "<C-w>",
+                "k"
+            ]
+        },
+        {
+            "before": [
+                "<C-l>"
+            ],
+            "after": [
+                "<C-w>",
+                "l"
+            ]
+        },
+        {
+            "before": [
+                "<leader>",
+                "w"
+            ],
+            "commands": [
+                "workbench.action.files.save",
+            ]
+        },
+        {
+            "before": [
+                "<C-s>",
+            ],
+            "commands": [
+                "workbench.action.splitEditor"
+            ]
+        },
+    ],
+    "vim.insertModeKeyBindingsNonRecursive": [
+        {
+            "before": [
+                "j",
+                "k"
+            ],
+            "after": [
+                "<Esc>"
+            ]
+        }
+    ],
+}

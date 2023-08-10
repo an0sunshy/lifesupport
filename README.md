@@ -50,6 +50,11 @@ skhd --install-service
 skhd --start-service
 ```
 
+## VSCode settings for macOS
+```bash
+stow --target $HOME/Library/Application\ Support vscode
+```
+
 ## Use Mirrors for Repo - Ubuntu
 ```bash
 apt install apt-transport-https
