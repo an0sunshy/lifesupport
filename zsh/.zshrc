@@ -12,10 +12,9 @@ if [[ "$(uname -s)" = "Darwin" ]]; then
     alias dev="cd ~/SynologyDrive/Dev"
     export LDFLAGS="-L/usr/local/opt/libffi/lib"
     export PKG_CONFIG_PATH="/usr/local/opt/libffi/lib/pkgconfig"
-    [ -f /usr/local/bin/exa ] && alias ls="exa"
     ZSH_THEME='agnoster'
     if [[ -f /usr/bin/arch && $(/usr/bin/arch) == "arm64" ]]; then
-    	export PATH=/opt/homebrew/bin/:$PATH
+    	export PATH=/opt/homebrew/bin:$PATH
     	source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
     	source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
         alias x86="arch -x86_64"
@@ -50,8 +49,11 @@ DEFAULT_USER=`whoami`
 export EDITOR='nvim'
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
 alias pjson="python3 -m json.tool"
-alias ll="ls -alh"
+
+# Zsh
 alias rzsh="source ~/.zshrc"
+DISABLE_UPDATE_PROMPT=true
+
 alias vim="nvim"
 alias vi="nvim"
 # Persist sshfs
@@ -165,3 +167,10 @@ fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export PATH=$PATH:/Users/xiao/.spicetify
+
+if command -v ranger > /dev/null 2>&1; then
+    unalias ll
+    alias ll="ranger"
+else
+    alias ll="ls -alh"
+fi
