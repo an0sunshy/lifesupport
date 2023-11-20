@@ -174,3 +174,5 @@ if command -v ranger > /dev/null 2>&1; then
 else
     alias ll="ls -alh"
 fi
+
+[ -f ~/.inshellisense/key-bindings.zsh ] && source ~/.inshellisense/key-bindings.zsh
