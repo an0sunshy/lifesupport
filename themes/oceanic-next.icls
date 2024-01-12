@@ -1,16 +1,15 @@
 <scheme name="Oceanic Next" version="142" parent_scheme="Darcula">
   <option name="FONT_SCALE" value="1.0" />
   <metaInfo>
-    <property name="created">2018-07-16T12:23:51</property>
-    <property name="ide">Python</property>
-    <property name="ideVersion">2018.1.4.0.0</property>
-    <property name="modified">2018-07-16T12:24:26</property>
+    <property name="created">2024-01-12T11:18:13</property>
+    <property name="ide">idea</property>
+    <property name="ideVersion">2023.2.5.0.0</property>
+    <property name="modified">2024-01-12T11:18:32</property>
     <property name="originalScheme">Oceanic Next</property>
   </metaInfo>
-  <option name="LINE_SPACING" value="1.1" />
-  <option name="EDITOR_FONT_SIZE" value="15" />
-  <option name="EDITOR_FONT_NAME" value="Meslo LG M DZ for Powerline" />
   <option name="CONSOLE_FONT_NAME" value="Menlo" />
+  <option name="CONSOLE_FONT_SIZE" value="15" />
+  <option name="CONSOLE_LINE_SPACING" value="1.1" />
   <colors>
     <option name="ADDED_LINES_COLOR" value="343d46" />
     <option name="CARET_COLOR" value="65737e" />
@@ -397,7 +396,6 @@
       </value>
     </option>
     <option name="CSS.IMPORTANT" baseAttributes="DEFAULT_KEYWORD" />
-    <option name="CSS.KEYWORD" baseAttributes="DEFAULT_KEYWORD" />
     <option name="CSS.OPERATORS">
       <value>
         <option name="FOREGROUND" value="5fb3b3" />
@@ -900,7 +898,7 @@
         <option name="FOREGROUND" value="65737e" />
       </value>
     </option>
-    <option name="HAML_FILTER" baseAttributes="DEFAULT_LABEL" />
+    <option name="HAML_FILTER" baseAttributes="" />
     <option name="HAML_ID">
       <value>
         <option name="FOREGROUND" value="ec5f67" />
