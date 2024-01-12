@@ -3,10 +3,10 @@
     "aws.telemetry": false,
     "workbench.colorTheme": "Oceanic Next",
     "window.title": "${folderName}/${activeEditorShort}",
-    "editor.fontFamily": "MesloLGMDZ Nerd Font, Menlo, Monaco, 'Courier New', monospace",
+    "editor.fontFamily": "JetBrainsMono Nerd Font Mono, Menlo, Monaco, 'Courier New', monospace",
     "editor.fontSize": 14,
     "terminal.integrated.fontSize": 14,
-    "debug.console.fontFamily": "MesloLGMDZ Nerd Font",
+    "debug.console.fontFamily": "JetBrainsMono Nerd Font Mono",
     "editor.cursorStyle": "block",
     "editor.cursorBlinking": "solid",
     "editor.formatOnPaste": true,
@@ -15,8 +15,8 @@
     "editor.lineNumbers": "relative",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.addMissingImports": true,
-        "source.organizeImports": true
+        "source.addMissingImports": "explicit",
+        "source.organizeImports": "explicit"
     },
     "terminal.external.osxExec": "kitty.app",
     "terminal.integrated.customGlyphs": false,
@@ -67,9 +67,9 @@
     "vim.statusBarColors.easymotioninputmode": "#4F5B66",
     "vim.statusBarColors.surroundinputmode": "#4F5B66",
     "workbench.colorCustomizations": {
-        "statusBar.background": "#1B2B34",
-        "statusBar.noFolderBackground": "#1B2B34",
-        "statusBar.debuggingBackground": "#1B2B34",
+        "statusBar.background": "#CDD3DE",
+        "statusBar.noFolderBackground": "#CDD3DE",
+        "statusBar.debuggingBackground": "#CDD3DE",
         "statusBar.foreground": "#D8DEE9",
         "statusBar.debuggingForeground": "#D8DEE9"
     },
@@ -178,4 +178,5 @@
             ]
         }
     ],
+    "editor.fontVariations": false,
 }

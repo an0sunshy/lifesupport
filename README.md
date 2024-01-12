@@ -66,5 +66,5 @@ sed -i 's/http:\/\/archive.ubuntu.com\/ubuntu/mirror:\/\/mirrors.ubuntu.com\/mir
 ### xfce4 termianl theme
 xfce4-terminal themes should be put under /usr/share/xfce4/terminal/colorschemes/
 
-### Meslo Fonts
-From [nerd-fonts](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/Meslo/M-DZ)
+### Font: JetBrainsMono
+From [nerd-fonts](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/JetBrainsMono)
