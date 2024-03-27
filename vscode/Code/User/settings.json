@@ -67,9 +67,9 @@
     "vim.statusBarColors.easymotioninputmode": "#4F5B66",
     "vim.statusBarColors.surroundinputmode": "#4F5B66",
     "workbench.colorCustomizations": {
-        "statusBar.background": "#CDD3DE",
-        "statusBar.noFolderBackground": "#CDD3DE",
-        "statusBar.debuggingBackground": "#CDD3DE",
+        "statusBar.background": "#1B2B34",
+        "statusBar.noFolderBackground": "#1B2B34",
+        "statusBar.debuggingBackground": "#1B2B34",
         "statusBar.foreground": "#D8DEE9",
         "statusBar.debuggingForeground": "#D8DEE9"
     },
@@ -179,4 +179,7 @@
         }
     ],
     "editor.fontVariations": false,
+    "editor.minimap.enabled": false,
+    "notebook.formatOnSave.enabled": true,
+    "notebook.confirmDeleteRunningCell": false,
 }

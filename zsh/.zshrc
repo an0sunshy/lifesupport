@@ -111,6 +111,7 @@ HIST_STAMPS="mm/dd/yyyy"
 plugins=(
     ansible
     aws
+    asdf
     colored-man-pages
     colorize
     docker 

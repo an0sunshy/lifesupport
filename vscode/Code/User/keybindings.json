@@ -65,5 +65,14 @@
         "command": "-workbench.action.terminal.toggleTerminal",
         "key": "ctrl+`",
         "when": "terminal.active"
-    }
+    },
+    {
+        "key": "cmd+l",
+        "command": "-expandLineSelection",
+        "when": "textInputFocus"
+    },
+    {
+        "key": "ctrl+p",
+        "command": "search.action.openNewEditor"
+    },
 ]
