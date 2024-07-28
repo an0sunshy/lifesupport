@@ -37,42 +37,6 @@
         "**/tmp/**": true,
         "**/dist/**": true
     },
-    "vim.statusBarColorControl": true,
-    "vim.statusBarColors.normal": [
-        "#1B2B34",
-        "#D8DEE9"
-    ],
-    "vim.statusBarColors.insert": [
-        "#CDD3DE",
-    ],
-    "vim.statusBarColors.visual": [
-        "#99C794",
-        "#343D46"
-    ],
-    "vim.statusBarColors.visualline": [
-        "#99C794",
-        "#343D46"
-    ],
-    "vim.statusBarColors.visualblock": [
-        "#99C794",
-        "#343D46"
-    ],
-    "vim.statusBarColors.replace": [
-        "#EC5f67",
-        "#343D46"
-    ],
-    "vim.statusBarColors.commandlineinprogress": "#4F5B66",
-    "vim.statusBarColors.searchinprogressmode": "#4F5B66",
-    "vim.statusBarColors.easymotionmode": "#4F5B66",
-    "vim.statusBarColors.easymotioninputmode": "#4F5B66",
-    "vim.statusBarColors.surroundinputmode": "#4F5B66",
-    "workbench.colorCustomizations": {
-        "statusBar.background": "#1B2B34",
-        "statusBar.noFolderBackground": "#1B2B34",
-        "statusBar.debuggingBackground": "#1B2B34",
-        "statusBar.foreground": "#D8DEE9",
-        "statusBar.debuggingForeground": "#D8DEE9"
-    },
     "vim.normalModeKeyBindingsNonRecursive": [
         {
             "before": [
