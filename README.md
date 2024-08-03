@@ -55,6 +55,11 @@ skhd --start-service
 stow --target $HOME/Library/Application\ Support vscode
 ```
 
+## VSCode settings for remote linux
+```bash
+stow --target $HOME/.vscode-server/data/Machine vscode
+```
+
 ## Use Mirrors for Repo - Ubuntu
 ```bash
 apt install apt-transport-https

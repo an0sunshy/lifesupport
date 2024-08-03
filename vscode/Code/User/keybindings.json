@@ -62,17 +62,17 @@
         "key": "cmd+z"
     },
     {
-        "command": "-workbench.action.terminal.toggleTerminal",
-        "key": "ctrl+`",
-        "when": "terminal.active"
-    },
-    {
         "key": "cmd+l",
         "command": "-expandLineSelection",
         "when": "textInputFocus"
     },
     {
-        "key": "ctrl+p",
-        "command": "search.action.openNewEditor"
+        "key": "ctrl+q",
+        "command": "workbench.action.closeActiveEditor",
+        "when": "editorTextFocus && vim.mode == 'Normal'"
     },
+    {
+        "key": "ctrl+p",
+        "command": "workbench.action.quickOpen"
+    }
 ]
