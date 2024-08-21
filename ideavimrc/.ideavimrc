@@ -21,6 +21,7 @@ let mapleader=" "
 nnoremap <Leader>q :action CloseContent<CR>
 nnoremap <Leader>qa :action CloseAllEditors<CR>
 nnoremap <leader>r :action Refactorings.QuickListPopupAction<CR>
+nnoremap <C-q> :action CloseContent<CR>
 
 set incsearch
 nnoremap <c-/> :action FindInPath<CR>
@@ -55,3 +56,4 @@ nnoremap ,gb :action Annotate<CR>
 
 nnoremap <c-h> :action MoveEditorToOppositeTabGroup<CR>
 nnoremap <c-l> :action MoveEditorToOppositeTabGroup<CR>
+nnoremap <c-o> :action Back<CR>
