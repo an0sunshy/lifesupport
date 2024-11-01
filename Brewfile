@@ -6,7 +6,6 @@ tap "koekeishiya/formulae"
 
 brew "cmake"
 brew "curl"
-brew "exa"
 brew "fd"
 brew "fzf"
 brew "git"

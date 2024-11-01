@@ -1,7 +1,7 @@
 if [[ "$(uname -s)" = "Darwin" ]]; then
     export HOMEBREW_NO_ANALYTICS=1
     export PATH=$HOME/bin:/usr/local/bin:$PATH
-    export GOPATH=/Users/xiao/Dev/go
+    export GOPATH=/Users/xiao/dev/go
     export PATH=$PATH:$GOPATH/bin    
     export ZSH="$HOME/.oh-my-zsh"
     alias surge="cd /Users/xiao/Library/Mobile Documents/iCloud~com~nssurge~inc/Documents"
