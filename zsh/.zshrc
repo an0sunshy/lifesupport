@@ -116,13 +116,19 @@ plugins=(
     colorize
     docker 
     docker-compose
+    dotenv
     extract
     fzf
     git
+    isodate
+    jsontools
     nmap
+    mise
     rsync
     rust
+    timer
     tmux 
+    uv
     z 
 )
 # TMUX Settings
@@ -175,3 +181,7 @@ if command -v ranger > /dev/null 2>&1; then
 else
     alias ll="ls -alh"
 fi
+
+# timer
+TIMER_FORMAT='[%d]'
+TIMER_PRECISION=2
