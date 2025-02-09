@@ -185,3 +185,5 @@ fi
 # timer
 TIMER_FORMAT='[%d]'
 TIMER_PRECISION=2
+
+. "$HOME/.local/bin/env"
