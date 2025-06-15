@@ -185,4 +185,13 @@ fi
 TIMER_FORMAT='[%d]'
 TIMER_PRECISION=2
 
+getHostname() {
+    if [[ -z "$1" ]]; then
+        echo "Usage: getHostname <hostname>"
+        return 1
+    fi
+    
+    rg "$1" ~/.ssh/config -A 5 | rg -o "Hostname\s+(\S+)" --replace '$1'
+}
+
 . "$HOME/.local/bin/env"

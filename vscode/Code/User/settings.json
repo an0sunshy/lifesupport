@@ -146,4 +146,8 @@
     "editor.minimap.enabled": false,
     "notebook.formatOnSave.enabled": true,
     "notebook.confirmDeleteRunningCell": false,
+    "update.showReleaseNotes": false,
+    "terminal.integrated.env.osx": {
+        "Q_NEW_SESSION": "1"
+    },
 }
