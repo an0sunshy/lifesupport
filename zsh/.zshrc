@@ -6,13 +6,18 @@
 
 OS_TYPE="$(uname -s)"
 
+# Cache WSL detection to avoid repeated system calls
+if [[ -z "$IS_WSL" && "$OS_TYPE" = "Linux" ]]; then
+    export IS_WSL=$(uname -r | grep -q 'WSL' && echo "true" || echo "false")
+fi
+
 # ============================================================================
 # CORE ENVIRONMENT VARIABLES
 # ============================================================================
 
 export TERM="xterm-256color"
 export LANG=en_US.UTF-8
-export DEFAULT_USER=`whoami`
+export DEFAULT_USER=$USER
 export EDITOR='nvim'
 
 # ============================================================================
@@ -29,18 +34,13 @@ HIST_STAMPS="mm/dd/yyyy"
 
 plugins=(
     ansible
-    aws
     colored-man-pages
-    colorize
     docker 
     docker-compose
     dotenv
     extract
     fzf
     git
-    isodate
-    jsontools
-    nmap
     mise
     rsync
     rust
@@ -82,7 +82,7 @@ if [[ "$OS_TYPE" = "Darwin" ]]; then
     
 elif [[ "$OS_TYPE" = "Linux" ]]; then
     # Linux Configuration
-    if uname -r | grep -q 'WSL'; then
+    if [[ "$IS_WSL" = "true" ]]; then
         ZSH_THEME="agnoster"
     else
         ZSH_THEME="robbyrussell"
@@ -91,13 +91,6 @@ elif [[ "$OS_TYPE" = "Linux" ]]; then
     # Go configuration
     export GOPATH=/home/xiao/dev/go
     export PATH=$PATH:$GOPATH/bin
-    
-    # Proxy configuration
-    curl -s --socks5 127.0.0.1:1080 ifconfig.co > /dev/null
-    if [[ $? == 0 ]]; then
-        export http_proxy=socks5://127.0.0.1:1080
-        export https_proxy=socks5://127.0.0.1:1080
-    fi
     
     # ZSH plugins (system paths)
     if [[ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then 
