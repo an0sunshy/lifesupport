@@ -25,7 +25,14 @@ export EDITOR='nvim'
 # ============================================================================
 
 export ZSH="$HOME/.oh-my-zsh"
-DISABLE_UPDATE_PROMPT=true
+
+# Enable Oh My Zsh auto update only on Mondays
+if [[ $(date +%u) -eq 1 ]]; then
+    DISABLE_UPDATE_PROMPT=false
+else
+    DISABLE_UPDATE_PROMPT=true
+fi
+
 HIST_STAMPS="mm/dd/yyyy"
 
 # ============================================================================
@@ -41,7 +48,6 @@ plugins=(
     extract
     fzf
     git
-    mise
     rsync
     rust
     timer
@@ -179,4 +185,8 @@ fi
 # Source local environment if it exists
 if [ -f "$HOME/.local/bin/env" ]; then
     . "$HOME/.local/bin/env"
+fi
+
+if command -v mise &> /dev/null; then
+    eval "$(mise activate zsh)"
 fi
