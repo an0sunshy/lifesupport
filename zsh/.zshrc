@@ -15,7 +15,6 @@ fi
 # CORE ENVIRONMENT VARIABLES
 # ============================================================================
 
-export TERM="xterm-256color"
 export LANG=en_US.UTF-8
 export DEFAULT_USER=$USER
 export EDITOR='nvim'
