@@ -30,10 +30,19 @@ Install zsh-completion
 git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh}/custom}/plugins/zsh-completions
 ```
 
-### Install Vim-Plug for Neovim
-From [junegunn/vim-plug](https://github.com/junegunn/vim-plug)
+### Neovim Configuration
+
+Neovim config is managed as a git submodule. After cloning this repo:
+
 ```bash
-curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+# Configure git to automatically update submodules
+git config --global submodule.recurse true
+
+# Initialize and update submodules
+git submodule update --init --recursive
+
+# Use stow to symlink neovim config
+stow nvim
 ```
 
 ## yabai and skhd for macOS
