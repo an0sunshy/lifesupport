@@ -1,3 +1,6 @@
 [submodule "nvim"]
 	path = nvim
 	url = git@github.com:an0sunshy/neovim.git
+[submodule "aicontext"]
+	path = aicontext
+	url = git@github.com:an0sunshy/aicontext.git
