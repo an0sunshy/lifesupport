@@ -75,7 +75,7 @@ if [[ "$OS_TYPE" = "Darwin" ]]; then
     export HOMEBREW_NO_ANALYTICS=1
     
     # PATH configuration
-    export PATH=$HOME/bin:/opt/homebrew/bin:/usr/local/bin:$PATH
+    export PATH=$HOME/bin:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH
     export PATH=$PATH:/Users/xiao/.spicetify
     
     # Go configuration
