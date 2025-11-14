@@ -66,3 +66,4 @@ yabai -m rule --add label="Steam" app="^Steam$" manage=off
 yabai -m rule --add label="Steam Helper" app="^Steam Helper$" manage=off
 yabai -m rule --add label="Civilization VI" app="^Civilization VI$" manage=off
 yabai -m rule --add label="Simulator" app="^Simulator$" manage=off
+yabai -m rule --add label="Screen Sharing" app="^Screen Sharing$" manage=off
