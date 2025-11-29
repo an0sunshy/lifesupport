@@ -150,4 +150,5 @@
     "terminal.integrated.env.osx": {
         "Q_NEW_SESSION": "1"
     },
+    "aws.cloudformation.telemetry.enabled": false,
 }
