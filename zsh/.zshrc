@@ -43,21 +43,15 @@ plugins=(
     colored-man-pages
     docker 
     docker-compose
-    dotenv
     extract
     fzf
     git
     rsync
     rust
     timer
-    tmux 
     uv
     z 
 )
-
-# TMUX Settings
-ZSH_TMUX_AUTOSTART_ONCE="true"
-ZSH_TMUX_CONNECTING="true"
 
 # Timer plugin configuration
 TIMER_FORMAT='[%d]'
