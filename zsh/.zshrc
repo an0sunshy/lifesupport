@@ -153,6 +153,9 @@ else
     alias ll="ls -alh"
 fi
 
+alias ccyolo="claude --dangerously-skip-permissions"
+alias oc="openclaw" 
+
 # ============================================================================
 # CUSTOM FUNCTIONS
 # ============================================================================
