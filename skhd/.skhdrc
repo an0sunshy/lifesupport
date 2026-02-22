@@ -79,5 +79,5 @@ shift + ctrl + alt - r :
 alt - f         : yabai -m window --toggle zoom-fullscreen
 shift + alt - f : yabai -m window --toggle native-fullscreen
 
-# Toggle Kitty
-cmd + shift - i : "${HOME}"/.local/scripts/toggle_kitty.sh
+# Toggle Ghostty
+cmd + shift - i : "${HOME}"/.local/scripts/toggle_ghostty.sh
