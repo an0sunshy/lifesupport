@@ -12,6 +12,16 @@ if [[ -z "$IS_WSL" && "$OS_TYPE" = "Linux" ]]; then
 fi
 
 # ============================================================================
+# GHOSTTY SHELL INTEGRATION (for SSH/remote sessions)
+# ============================================================================
+
+# Ghostty auto-injects locally, but for remote sessions we need to
+# manually source it if the integration scripts are available.
+if [[ -n "${GHOSTTY_RESOURCES_DIR}" && -f "${GHOSTTY_RESOURCES_DIR}/shell-integration/zsh/ghostty-integration" ]]; then
+    source "${GHOSTTY_RESOURCES_DIR}/shell-integration/zsh/ghostty-integration"
+fi
+
+# ============================================================================
 # CORE ENVIRONMENT VARIABLES
 # ============================================================================
 
