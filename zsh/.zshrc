@@ -114,6 +114,11 @@ fi
 # OH-MY-ZSH INITIALIZATION
 # ============================================================================
 
+# Source local pre-hook if it exists (runs before compinit for fpath additions)
+if [ -f ~/.zshrc-local-pre ]; then
+    source ~/.zshrc-local-pre
+fi
+
 fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
 source $ZSH/oh-my-zsh.sh
 
