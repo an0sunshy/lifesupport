@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# ~/dev/lifesupport/bin/voice-uninstall
+set -euo pipefail
+
+LABEL="com.lifesupport.voice-server"
+PLIST="$HOME/Library/LaunchAgents/${LABEL}.plist"
+NEWSYSLOG_CONF="/etc/newsyslog.d/${LABEL}.conf"
+
+launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
+rm -f "$PLIST"
+rm -f ~/.cache/voice-server.{sock,state,pane,failures}
+sudo rm -f "$NEWSYSLOG_CONF" 2>/dev/null || true
+
+echo "✅ voice-server uninstalled"
+echo "   Logs kept at: ~/Library/Logs/voice-server/"

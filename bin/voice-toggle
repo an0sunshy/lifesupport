@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# ~/dev/lifesupport/bin/voice-toggle
+# Usage: voice-toggle <pane_id>
+
+exec 2>>"${HOME}/.cache/voice-toggle.log"
+
+SOCK="${HOME}/.cache/voice-server.sock"
+STATE="${HOME}/.cache/voice-server.state"
+PANE_FILE="${HOME}/.cache/voice-server.pane"
+PANE_ID="${1:-}"
+
+if [[ ! -S "$SOCK" ]]; then
+  tmux display-message "voice-server not running"
+  exit 1
+fi
+
+if [[ -f "$STATE" ]]; then
+  rm -f "$STATE"
+  target=$(cat "$PANE_FILE")
+  tmux display-message "⏳ Transcribing..."
+
+  text=$(echo "stop" | socat -t 30 - UNIX-CONNECT:"$SOCK" \
+    | python3 -c "
+import sys, json, re
+raw = json.load(sys.stdin).get('text', '')
+fillers = r'\b(um|uh|uh huh|uhh|umm|hmm|hm|er|ah|like,?|you know,?|I mean,?|so,?|well,?|basically,?|actually,?|right,?|okay so,?)\b'
+text = re.sub(fillers, '', raw, flags=re.IGNORECASE)
+text = re.sub(r'\s{2,}', ' ', text)
+text = re.sub(r'\s+([.,!?])', r'\1', text)
+text = re.sub(r'^[,.\s]+', '', text)
+text = text.strip()
+if text:
+    text = text[0].upper() + text[1:]
+print(text, end='')
+")
+
+  if [[ -n "$text" ]]; then
+    printf '%s' "$text" | pbcopy
+    tmux display-message "✅ Copied ${#text} chars — Cmd+V to paste"
+  else
+    tmux display-message "⚠️  No speech detected"
+  fi
+  rm -f "$PANE_FILE"
+else
+  echo "start" | socat - UNIX-CONNECT:"$SOCK" >/dev/null || true
+  echo "$PANE_ID" > "$PANE_FILE"
+  touch "$STATE"
+  tmux display-message "🎙️ Recording... press again to stop"
+fi
