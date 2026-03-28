@@ -79,8 +79,7 @@ if [[ "$OS_TYPE" = "Darwin" ]]; then
     export HOMEBREW_NO_ANALYTICS=1
     
     # PATH configuration
-    export PATH=$HOME/bin:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH
-    export PATH=$PATH:/Users/xiao/.spicetify
+    export PATH=$HOME/dev/lifesupport/bin:$HOME/bin:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH
     
     # Go configuration
     export GOPATH=/Users/xiao/dev/go
@@ -158,6 +157,12 @@ if [[ "$OS_TYPE" = "Darwin" ]]; then
     alias bru="brew update && brew upgrade; brew cleanup"
     alias dev="cd ~/SynologyDrive/Dev"
     alias arm="arch -arm64"
+
+    # Voice-to-text server (Parakeet TDT, Mac-only)
+    alias voice-start="launchctl kickstart gui/\$(id -u)/com.lifesupport.voice-server"
+    alias voice-stop="launchctl kill SIGTERM gui/\$(id -u)/com.lifesupport.voice-server"
+    alias voice-restart="rm -f ~/.cache/voice-server.failures; launchctl kickstart -k gui/\$(id -u)/com.lifesupport.voice-server"
+    alias voice-log="tail -f ~/Library/Logs/voice-server/voice-server.log"
 fi
 
 # Conditional aliases based on available tools
@@ -201,3 +206,4 @@ fi
 if command -v mise &> /dev/null; then
     eval "$(mise activate zsh)"
 fi
+

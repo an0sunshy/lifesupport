@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""Voice-to-text server using parakeet-mlx (macOS Apple Silicon only).
+
+Listens on a unix socket. Commands: start, stop, ping.
+"""
+
+import json
+import os
+import platform
+import signal
+import socket
+import sys
+import tempfile
+import threading
+
+if platform.system() != "Darwin":
+    sys.exit("voice-server: macOS only. Linux/WSL support not yet implemented.")
+
+SOCK_PATH = os.path.expanduser("~/.cache/voice-server.sock")
+MODEL_RATE = 16000
+
+_recording = False
+_audio_frames = []
+_lock = threading.Lock()
+_device_rate = None
+
+
+def _get_model():
+    if not hasattr(_get_model, "_m"):
+        from parakeet_mlx import from_pretrained
+        _get_model._m = from_pretrained("mlx-community/parakeet-tdt-0.6b-v3")
+    return _get_model._m
+
+
+def _record_callback(indata, frames, time_info, status):
+    if _recording:
+        _audio_frames.append(indata.copy())
+
+
+def _resample(audio, orig_rate, target_rate):
+    import numpy as np
+    if orig_rate == target_rate:
+        return audio
+    ratio = target_rate / orig_rate
+    n_out = int(len(audio) * ratio)
+    indices = np.arange(n_out) / ratio
+    floor = np.floor(indices).astype(int)
+    ceil = np.minimum(floor + 1, len(audio) - 1)
+    frac = indices - floor
+    return audio[floor] * (1 - frac) + audio[ceil] * frac
+
+
+def _start_recording():
+    global _recording, _audio_frames, _device_rate
+    import sounddevice as sd
+    with _lock:
+        _audio_frames = []
+        _recording = True
+    dev_info = sd.query_devices(kind="input")
+    _device_rate = int(dev_info["default_samplerate"])
+    _start_recording._stream = sd.InputStream(
+        samplerate=_device_rate, channels=1, dtype="float32",
+        callback=_record_callback,
+    )
+    _start_recording._stream.start()
+
+
+def _stop_and_transcribe():
+    global _recording
+    import numpy as np
+    import soundfile as sf
+    with _lock:
+        _recording = False
+    _start_recording._stream.stop()
+    _start_recording._stream.close()
+    if not _audio_frames:
+        return ""
+    audio = np.concatenate(_audio_frames, axis=0).flatten()
+    audio = _resample(audio, _device_rate, MODEL_RATE)
+    fd, tmp = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    try:
+        sf.write(tmp, audio, MODEL_RATE)
+        return _get_model().transcribe(tmp).text
+    finally:
+        os.unlink(tmp)
+
+
+def _handle(conn):
+    try:
+        cmd = conn.recv(64).decode().strip()
+        if cmd == "start":
+            _start_recording()
+            try:
+                conn.sendall(b"ok\n")
+            except OSError:
+                pass
+        elif cmd == "stop":
+            text = _stop_and_transcribe()
+            conn.sendall(json.dumps({"text": text}).encode() + b"\n")
+        elif cmd == "ping":
+            conn.sendall(b"pong\n")
+    except Exception as e:
+        try:
+            conn.sendall(json.dumps({"error": str(e)}).encode() + b"\n")
+        except OSError:
+            pass
+    finally:
+        conn.close()
+
+
+def main():
+    if os.path.exists(SOCK_PATH):
+        os.unlink(SOCK_PATH)
+    os.makedirs(os.path.dirname(SOCK_PATH), exist_ok=True)
+
+    srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    srv.bind(SOCK_PATH)
+    srv.listen(1)
+    print(f"voice-server (mlx) listening on {SOCK_PATH}", flush=True)
+
+    def _preload_model():
+        try:
+            _get_model()
+        except Exception as e:
+            print(f"FATAL: model load failed: {e}", flush=True)
+            os._exit(1)
+
+    threading.Thread(target=_preload_model, daemon=True).start()
+
+    def _shutdown(sig, frame):
+        srv.close()
+        if os.path.exists(SOCK_PATH):
+            os.unlink(SOCK_PATH)
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, _shutdown)
+    signal.signal(signal.SIGINT, _shutdown)
+
+    while True:
+        conn, _ = srv.accept()
+        threading.Thread(target=_handle, args=(conn,), daemon=True).start()
+
+
+if __name__ == "__main__":
+    main()

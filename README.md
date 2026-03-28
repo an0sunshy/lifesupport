@@ -82,3 +82,46 @@ xfce4-terminal themes should be put under /usr/share/xfce4/terminal/colorschemes
 
 ### Font: JetBrainsMono
 From [nerd-fonts](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts/JetBrainsMono)
+
+## Voice-to-Text (macOS Apple Silicon only)
+
+Local speech-to-text using [parakeet-mlx](https://github.com/senstella/parakeet-mlx). Runs as a LaunchAgent daemon, triggered via tmux F9 keybinding. Transcribed text is copied to clipboard.
+
+### Setup
+
+```bash
+# One-time: create venv, install deps, download model
+bin/voice-setup
+
+# Install LaunchAgent daemon (starts on login)
+bin/voice-install
+```
+
+### Usage
+
+In tmux, press **F9** to start recording, **F9** again to stop. Transcription is copied to clipboard.
+
+### Scripts
+
+| Script | Purpose |
+|---|---|
+| `voice-setup` | One-time venv + model setup |
+| `voice-install` | Install as LaunchAgent |
+| `voice-uninstall` | Remove LaunchAgent |
+| `voice-restart` | Restart the daemon |
+| `voice-toggle` | Tmux F9 handler (start/stop recording) |
+| `voice-server` | Python server (unix socket, managed by watchdog) |
+| `voice-watchdog` | Retry wrapper (3 attempts, then macOS notification) |
+
+### Troubleshooting
+
+- Logs: `~/Library/Logs/voice-server/voice-server.log`
+- Toggle debug log: `~/.cache/voice-toggle.log`
+- Ping test: `echo "ping" | socat -t 5 - UNIX-CONNECT:~/.cache/voice-server.sock`
+- If watchdog gives up after 3 retries, run `voice-restart`
+
+### Requirements
+
+- macOS with Apple Silicon
+- Homebrew packages: `socat`, `ffmpeg`
+- Python managed via `uv`

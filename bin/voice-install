@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# ~/dev/lifesupport/bin/voice-install
+# Install voice-server as a macOS LaunchAgent with log rotation.
+set -euo pipefail
+
+LABEL="com.lifesupport.voice-server"
+PLIST="$HOME/Library/LaunchAgents/${LABEL}.plist"
+LOG_DIR="$HOME/Library/Logs/voice-server"
+NEWSYSLOG_CONF="/etc/newsyslog.d/${LABEL}.conf"
+WATCHDOG="$HOME/dev/lifesupport/bin/voice-watchdog"
+
+mkdir -p "$LOG_DIR"
+
+cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>${LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>${WATCHDOG}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>${LOG_DIR}/voice-server.log</string>
+    <key>StandardErrorPath</key>
+    <string>${LOG_DIR}/voice-server.log</string>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>Nice</key>
+    <integer>10</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>LowPriorityBackgroundIO</key>
+    <true/>
+</dict>
+</plist>
+EOF
+
+echo "Installing log rotation (requires sudo)..."
+sudo tee "$NEWSYSLOG_CONF" > /dev/null <<EOF
+# logfile                                      mode count size(KB) when  flags
+${LOG_DIR}/voice-server.log                    644  5     10240    *     GN
+EOF
+
+launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "$PLIST"
+
+echo "✅ voice-server installed as LaunchAgent"
+echo "   Logs:    $LOG_DIR/voice-server.log"
+echo "   Retries: 3 max, then macOS notification + stops"

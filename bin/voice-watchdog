@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# ~/dev/lifesupport/bin/voice-watchdog
+# Wraps voice-server with retry limit and macOS notification on failure.
+
+export PATH="/opt/homebrew/bin:$PATH"
+VENV="$HOME/.local/share/voice-server/venv/bin/python3"
+SERVER="$HOME/dev/lifesupport/bin/voice-server"
+MAX_RETRIES=3
+STATE="$HOME/.cache/voice-server.failures"
+
+failures=$(cat "$STATE" 2>/dev/null || echo 0)
+
+if (( failures >= MAX_RETRIES )); then
+  osascript -e 'display notification "Failed after 3 retries. Run voice-restart to retry." with title "voice-server" sound name "Basso"'
+  echo "$(date): giving up after $MAX_RETRIES consecutive failures" >> "$HOME/Library/Logs/voice-server/voice-server.log"
+  rm -f "$STATE"
+  exit 0
+fi
+
+"$VENV" "$SERVER"
+exit_code=$?
+
+if (( exit_code != 0 )); then
+  echo $(( failures + 1 )) > "$STATE"
+  exit 1
+else
+  rm -f "$STATE"
+  exit 0
+fi

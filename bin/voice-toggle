@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# ~/dev/lifesupport/bin/voice-toggle
+# Usage: voice-toggle <pane_id>
+
+exec 2>>"${HOME}/.cache/voice-toggle.log"
+
+SOCK="${HOME}/.cache/voice-server.sock"
+STATE="${HOME}/.cache/voice-server.state"
+PANE_FILE="${HOME}/.cache/voice-server.pane"
+PANE_ID="${1:-}"
+
+if [[ ! -S "$SOCK" ]]; then
+  tmux display-message "voice-server not running"
+  exit 1
+fi
+
+if [[ -f "$STATE" ]]; then
+  rm -f "$STATE"
+  target=$(cat "$PANE_FILE")
+  # Restore status bar
+  if [[ -f "${HOME}/.cache/voice-server.status-right" ]]; then
+    tmux set -g status-right "$(cat "${HOME}/.cache/voice-server.status-right")"
+    rm -f "${HOME}/.cache/voice-server.status-right"
+  fi
+  tmux display-message "⏳ Transcribing..."
+
+  text=$(echo "stop" | socat -t 30 - UNIX-CONNECT:"$SOCK" \
+    | python3 -c "
+import sys, json, re
+raw = json.load(sys.stdin).get('text', '')
+fillers = r'\b(um|uh|uh huh|uhh|umm|hmm|hm|er|ah|like,?|you know,?|I mean,?|so,?|well,?|basically,?|actually,?|right,?|okay so,?)\b'
+text = re.sub(fillers, '', raw, flags=re.IGNORECASE)
+text = re.sub(r'\s{2,}', ' ', text)
+text = re.sub(r'\s+([.,!?])', r'\1', text)
+text = re.sub(r'^[,.\s]+', '', text)
+text = text.strip()
+if text:
+    text = text[0].upper() + text[1:]
+print(text, end='')
+")
+
+  if [[ -n "$text" ]]; then
+    printf '%s' "$text" | pbcopy
+    tmux send-keys -t "$target" -l "$text"
+    tmux display-message "✅ Sent ${#text} chars"
+  else
+    tmux display-message "⚠️  No speech detected"
+  fi
+  rm -f "$PANE_FILE"
+else
+  tmux display-message "⏳ Starting mic..."
+  if echo "start" | socat -t 5 - UNIX-CONNECT:"$SOCK" >/dev/null 2>&1; then
+    echo "$PANE_ID" > "$PANE_FILE"
+    touch "$STATE"
+    # Save current status-right, show persistent recording indicator
+    tmux show-option -gv status-right > "${HOME}/.cache/voice-server.status-right"
+    tmux set -g status-right "#[fg=#131a24,bg=#e06c75,bold] 🎙️ REC #[default] $(tmux show-option -gv status-right)"
+  else
+    tmux display-message "❌ voice-server not responding — run: voice-restart"
+  fi
+fi
