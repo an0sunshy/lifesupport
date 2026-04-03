@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Usage: voice-status [state|mode]
+SOCK="${HOME}/.cache/voice-server.sock"
+MODE_FILE="${HOME}/.cache/voice-server.mode"
+STATE="${HOME}/.cache/voice-server.state"
+PROC="${HOME}/.cache/voice-server.processing"
+DONE="${HOME}/.cache/voice-server.done"
+
+case "${1:-state}" in
+  state)
+    if [[ -f "$DONE" ]]; then
+      cat "$DONE"
+    elif [[ -f "$PROC" ]]; then
+      echo "⏳"
+    elif [[ -f "$STATE" ]]; then
+      echo "⏺️"
+    else
+      echo "💤"
+    fi
+    ;;
+  mode)
+    if [[ -S "$SOCK" ]] && echo "ping" | socat -t 1 - UNIX-CONNECT:"$SOCK" 2>/dev/null | grep -q pong; then
+      ready="🟢"
+    else
+      ready="🔴"
+    fi
+    mode=$([[ -f "$MODE_FILE" ]] && echo "🚀" || echo "✏️")
+    echo "${ready} ${mode}"
+    ;;
+esac

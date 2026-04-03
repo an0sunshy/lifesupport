@@ -1,13 +1,28 @@
 #!/usr/bin/env bash
 # ~/dev/lifesupport/bin/voice-toggle
-# Usage: voice-toggle <pane_id>
+# Usage: voice-toggle <pane_id> | --toggle-mode
 
 exec 2>>"${HOME}/.cache/voice-toggle.log"
 
 SOCK="${HOME}/.cache/voice-server.sock"
 STATE="${HOME}/.cache/voice-server.state"
+PROC="${HOME}/.cache/voice-server.processing"
+DONE="${HOME}/.cache/voice-server.done"
 PANE_FILE="${HOME}/.cache/voice-server.pane"
+MODE_FILE="${HOME}/.cache/voice-server.mode"
 PANE_ID="${1:-}"
+
+# Shift+F9: toggle mode
+if [[ "$PANE_ID" == "--toggle-mode" ]]; then
+  if [[ -f "$MODE_FILE" ]]; then
+    rm -f "$MODE_FILE"
+    tmux display-message "🎤 Voice: ✏️ review"
+  else
+    touch "$MODE_FILE"
+    tmux display-message "🎤 Voice: 🚀 auto"
+  fi
+  exit 0
+fi
 
 if [[ ! -S "$SOCK" ]]; then
   tmux display-message "voice-server not running"
@@ -15,13 +30,10 @@ if [[ ! -S "$SOCK" ]]; then
 fi
 
 if [[ -f "$STATE" ]]; then
+  # Stop recording → processing → transcribe → done
   rm -f "$STATE"
+  touch "$PROC"
   target=$(cat "$PANE_FILE")
-  # Restore status bar
-  if [[ -f "${HOME}/.cache/voice-server.status-right" ]]; then
-    tmux set -g status-right "$(cat "${HOME}/.cache/voice-server.status-right")"
-    rm -f "${HOME}/.cache/voice-server.status-right"
-  fi
   tmux display-message "⏳ Transcribing..."
 
   text=$(echo "stop" | socat -t 30 - UNIX-CONNECT:"$SOCK" \
@@ -39,22 +51,28 @@ if text:
 print(text, end='')
 ")
 
+  rm -f "$PROC"
+
   if [[ -n "$text" ]]; then
     printf '%s' "$text" | pbcopy
     tmux send-keys -t "$target" -l "$text"
+    [[ -f "$MODE_FILE" ]] && tmux send-keys -t "$target" Enter
+    echo "✅" > "$DONE"
     tmux display-message "✅ Sent ${#text} chars"
   else
-    tmux display-message "⚠️  No speech detected"
+    echo "⚠️" > "$DONE"
+    tmux display-message "⚠️ No speech detected"
   fi
   rm -f "$PANE_FILE"
+  # Auto-clear done badge after 3s
+  (sleep 3 && rm -f "$DONE") &
+  disown
 else
-  tmux display-message "⏳ Starting mic..."
+  # Start recording
   if echo "start" | socat -t 5 - UNIX-CONNECT:"$SOCK" >/dev/null 2>&1; then
     echo "$PANE_ID" > "$PANE_FILE"
     touch "$STATE"
-    # Save current status-right, show persistent recording indicator
-    tmux show-option -gv status-right > "${HOME}/.cache/voice-server.status-right"
-    tmux set -g status-right "#[fg=#131a24,bg=#e06c75,bold] 🎙️ REC #[default] $(tmux show-option -gv status-right)"
+    tmux display-message "⏺️ Recording..."
   else
     tmux display-message "❌ voice-server not responding — run: voice-restart"
   fi
