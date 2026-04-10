@@ -12,24 +12,32 @@ import socket
 import sys
 import tempfile
 import threading
+import time
 
 if platform.system() != "Darwin":
     sys.exit("voice-server: macOS only. Linux/WSL support not yet implemented.")
 
 SOCK_PATH = os.path.expanduser("~/.cache/voice-server.sock")
 MODEL_RATE = 16000
+HEALTH_CHECK_INTERVAL = 60  # seconds
 
 _recording = False
 _audio_frames = []
 _lock = threading.Lock()
 _device_rate = None
+_model = None
 
 
-def _get_model():
-    if not hasattr(_get_model, "_m"):
-        from parakeet_mlx import from_pretrained
-        _get_model._m = from_pretrained("mlx-community/parakeet-tdt-0.6b-v3")
-    return _get_model._m
+def _log(msg):
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}", flush=True)
+
+
+def _load_model():
+    global _model
+    from parakeet_mlx import from_pretrained
+    t0 = time.time()
+    _model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v3")
+    _log(f"model loaded in {time.time() - t0:.1f}s")
 
 
 def _record_callback(indata, frames, time_info, status):
@@ -63,6 +71,7 @@ def _start_recording():
         callback=_record_callback,
     )
     _start_recording._stream.start()
+    _log("recording started")
 
 
 def _stop_and_transcribe():
@@ -74,14 +83,20 @@ def _stop_and_transcribe():
     _start_recording._stream.stop()
     _start_recording._stream.close()
     if not _audio_frames:
+        _log("no audio frames captured")
         return ""
     audio = np.concatenate(_audio_frames, axis=0).flatten()
+    duration = len(audio) / _device_rate
+    _log(f"recorded {duration:.1f}s audio, resampling...")
     audio = _resample(audio, _device_rate, MODEL_RATE)
     fd, tmp = tempfile.mkstemp(suffix=".wav")
     os.close(fd)
     try:
         sf.write(tmp, audio, MODEL_RATE)
-        return _get_model().transcribe(tmp).text
+        t0 = time.time()
+        text = _model.transcribe(tmp).text
+        _log(f"transcribed in {time.time() - t0:.1f}s: {len(text)} chars")
+        return text
     finally:
         os.unlink(tmp)
 
@@ -89,6 +104,7 @@ def _stop_and_transcribe():
 def _handle(conn):
     try:
         cmd = conn.recv(64).decode().strip()
+        _log(f"cmd: {cmd}")
         if cmd == "start":
             _start_recording()
             try:
@@ -101,6 +117,7 @@ def _handle(conn):
         elif cmd == "ping":
             conn.sendall(b"pong\n")
     except Exception as e:
+        _log(f"error handling '{cmd if 'cmd' in dir() else '?'}': {e}")
         try:
             conn.sendall(json.dumps({"error": str(e)}).encode() + b"\n")
         except OSError:
@@ -109,7 +126,30 @@ def _handle(conn):
         conn.close()
 
 
+def _audio_health_check(srv):
+    """Periodically verify audio subsystem is functional."""
+    while True:
+        time.sleep(HEALTH_CHECK_INTERVAL)
+        try:
+            import sounddevice as sd
+            sd.query_devices(kind="input")
+        except Exception as e:
+            _log(f"audio health check failed: {e} — exiting for restart")
+            srv.close()
+            if os.path.exists(SOCK_PATH):
+                os.unlink(SOCK_PATH)
+            os._exit(1)
+
+
 def main():
+    # Load model BEFORE accepting connections — no race condition
+    _log("loading model...")
+    try:
+        _load_model()
+    except Exception as e:
+        _log(f"FATAL: model load failed: {e}")
+        sys.exit(1)
+
     if os.path.exists(SOCK_PATH):
         os.unlink(SOCK_PATH)
     os.makedirs(os.path.dirname(SOCK_PATH), exist_ok=True)
@@ -117,18 +157,13 @@ def main():
     srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     srv.bind(SOCK_PATH)
     srv.listen(1)
-    print(f"voice-server (mlx) listening on {SOCK_PATH}", flush=True)
+    _log(f"listening on {SOCK_PATH}")
 
-    def _preload_model():
-        try:
-            _get_model()
-        except Exception as e:
-            print(f"FATAL: model load failed: {e}", flush=True)
-            os._exit(1)
-
-    threading.Thread(target=_preload_model, daemon=True).start()
+    # Start audio health check thread
+    threading.Thread(target=_audio_health_check, args=(srv,), daemon=True).start()
 
     def _shutdown(sig, frame):
+        _log(f"shutting down (signal {sig})")
         srv.close()
         if os.path.exists(SOCK_PATH):
             os.unlink(SOCK_PATH)
@@ -138,8 +173,11 @@ def main():
     signal.signal(signal.SIGINT, _shutdown)
 
     while True:
-        conn, _ = srv.accept()
-        threading.Thread(target=_handle, args=(conn,), daemon=True).start()
+        try:
+            conn, _ = srv.accept()
+            threading.Thread(target=_handle, args=(conn,), daemon=True).start()
+        except OSError:
+            break  # socket closed by shutdown or health check
 
 
 if __name__ == "__main__":

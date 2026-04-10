@@ -36,10 +36,28 @@ if [[ -f "$STATE" ]]; then
   target=$(cat "$PANE_FILE")
   tmux display-message "⏳ Transcribing..."
 
-  text=$(echo "stop" | socat -t 30 - UNIX-CONNECT:"$SOCK" \
-    | python3 -c "
+  raw_response=$(echo "stop" | socat -t 30 - UNIX-CONNECT:"$SOCK" 2>/dev/null) || true
+
+  if [[ -z "$raw_response" ]]; then
+    rm -f "$PROC" "$PANE_FILE"
+    echo "⚠️" > "$DONE"
+    tmux display-message "❌ Server returned empty response"
+    (sleep 3 && rm -f "$DONE") &
+    disown
+    exit 1
+  fi
+
+  text=$(printf '%s' "$raw_response" | python3 -c "
 import sys, json, re
-raw = json.load(sys.stdin).get('text', '')
+try:
+    data = json.load(sys.stdin)
+except (json.JSONDecodeError, ValueError):
+    print('', end='')
+    sys.exit(0)
+if 'error' in data:
+    print('', end='')
+    sys.exit(0)
+raw = data.get('text', '')
 fillers = r'\b(um|uh|uh huh|uhh|umm|hmm|hm|er|ah|like,?|you know,?|I mean,?|so,?|well,?|basically,?|actually,?|right,?|okay so,?)\b'
 text = re.sub(fillers, '', raw, flags=re.IGNORECASE)
 text = re.sub(r'\s{2,}', ' ', text)

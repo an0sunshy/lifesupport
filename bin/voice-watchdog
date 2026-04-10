@@ -1,29 +1,80 @@
 #!/usr/bin/env bash
 # ~/dev/lifesupport/bin/voice-watchdog
-# Wraps voice-server with retry limit and macOS notification on failure.
+# Wraps voice-server with auto-repair and exponential backoff.
+# Never gives up — launchctl keeps restarting via KeepAlive: true.
 
 export PATH="/opt/homebrew/bin:$PATH"
-VENV="$HOME/.local/share/voice-server/venv/bin/python3"
+VENV="$HOME/.local/share/voice-server/venv"
+PYTHON="$VENV/bin/python3"
 SERVER="$HOME/dev/lifesupport/bin/voice-server"
-MAX_RETRIES=3
+SETUP="$HOME/dev/lifesupport/bin/voice-setup"
+SOCK="$HOME/.cache/voice-server.sock"
 STATE="$HOME/.cache/voice-server.failures"
+LOG="$HOME/Library/Logs/voice-server/voice-server.log"
+
+log() { echo "$(date '+%Y-%m-%d %H:%M:%S') [watchdog] $*" >> "$LOG"; }
 
 failures=$(cat "$STATE" 2>/dev/null || echo 0)
 
-if (( failures >= MAX_RETRIES )); then
-  osascript -e 'display notification "Failed after 3 retries. Run voice-restart to retry." with title "voice-server" sound name "Basso"'
-  echo "$(date): giving up after $MAX_RETRIES consecutive failures" >> "$HOME/Library/Logs/voice-server/voice-server.log"
-  rm -f "$STATE"
-  exit 0
+# --- Exponential backoff ---
+if (( failures > 0 )); then
+  # 10s, 30s, 60s, 120s, 300s cap
+  delay=$(( 10 * (1 << (failures - 1)) ))
+  (( delay > 300 )) && delay=300
+  log "failure #$failures — backing off ${delay}s before retry"
+  sleep "$delay"
 fi
 
-"$VENV" "$SERVER"
-exit_code=$?
-
-if (( exit_code != 0 )); then
-  echo $(( failures + 1 )) > "$STATE"
-  exit 1
-else
-  rm -f "$STATE"
-  exit 0
+# --- Auto-repair venv if broken ---
+needs_repair=0
+if [[ ! -x "$PYTHON" ]]; then
+  log "venv python missing — will rebuild"
+  needs_repair=1
+elif ! "$PYTHON" -c "import parakeet_mlx" 2>/dev/null; then
+  log "parakeet_mlx import failed — will rebuild venv"
+  needs_repair=1
 fi
+
+if (( needs_repair )); then
+  log "running voice-setup to rebuild venv..."
+  rm -rf "$VENV"
+  if "$SETUP" >> "$LOG" 2>&1; then
+    log "venv rebuilt successfully"
+  else
+    log "voice-setup failed"
+    echo $(( failures + 1 )) > "$STATE"
+    exit 1
+  fi
+fi
+
+# --- Start server ---
+"$PYTHON" "$SERVER" &
+server_pid=$!
+
+# --- Health check: wait for socket, then ping ---
+for i in 1 2 3 4 5; do
+  sleep 2
+  if [[ -S "$SOCK" ]]; then
+    pong=$(echo "ping" | socat -t 5 - UNIX-CONNECT:"$SOCK" 2>/dev/null)
+    if [[ "$pong" == "pong" ]]; then
+      log "health check passed (pid=$server_pid)"
+      rm -f "$STATE"
+      wait "$server_pid"
+      exit_code=$?
+      if (( exit_code != 0 )); then
+        log "server exited with code $exit_code"
+        echo $(( $(cat "$STATE" 2>/dev/null || echo 0) + 1 )) > "$STATE"
+      else
+        rm -f "$STATE"
+      fi
+      exit 1  # always exit non-zero so launchctl restarts
+    fi
+  fi
+done
+
+# Health check failed — kill server and retry
+log "health check failed after 10s — killing server"
+kill "$server_pid" 2>/dev/null
+wait "$server_pid" 2>/dev/null
+echo $(( failures + 1 )) > "$STATE"
+exit 1
