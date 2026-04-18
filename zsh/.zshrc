@@ -173,6 +173,7 @@ else
     alias ll="ls -alh"
 fi
 
+export CLAUDE_CODE_NO_FLICKER=1
 alias ccyolo="claude --dangerously-skip-permissions"
 alias oc="openclaw" 
 
