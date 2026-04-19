@@ -146,7 +146,7 @@ alias jqs="jq --sort-keys"
 alias sshfsp="sshfs -o reconnect,ServerAliveInterval=15,ServerAliveCountMax=3"
 
 # Git aliases
-alias gpr="git pull --rebase"
+alias gpr="git pull --rebase && git submodule update --init"
 
 # macOS-specific aliases
 if [[ "$OS_TYPE" = "Darwin" ]]; then
