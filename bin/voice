@@ -1,0 +1,339 @@
+#!/usr/bin/env bash
+# ~/dev/lifesupport/bin/voice
+# Unified voice-to-text CLI — consolidates all voice-* scripts.
+
+LABEL="com.lifesupport.voice-server"
+SOCK="${HOME}/.cache/voice-server.sock"
+STATE="${HOME}/.cache/voice-server.state"
+PROC="${HOME}/.cache/voice-server.processing"
+DONE="${HOME}/.cache/voice-server.done"
+PANE_FILE="${HOME}/.cache/voice-server.pane"
+STARTED="${HOME}/.cache/voice-server.started"
+MODE_FILE="${HOME}/.cache/voice-server.mode"
+FAILURES="${HOME}/.cache/voice-server.failures"
+VENV="${HOME}/.local/share/voice-server/venv"
+PYTHON="$VENV/bin/python3"
+PLIST="$HOME/Library/LaunchAgents/${LABEL}.plist"
+LOG_DIR="$HOME/Library/Logs/voice-server"
+LOG_FILE="$LOG_DIR/voice-server.log"
+NEWSYSLOG_CONF="/etc/newsyslog.d/${LABEL}.conf"
+WATCHDOG="$HOME/dev/lifesupport/bin/voice-watchdog"
+BIN_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+_process_response() {
+  python3 -c "
+import sys, json, re
+try:
+    data = json.load(sys.stdin)
+except (json.JSONDecodeError, ValueError):
+    print('', end='')
+    sys.exit(0)
+if 'error' in data:
+    print('', end='')
+    sys.exit(0)
+raw = data.get('text', '')
+fillers = r'\b(um|uh|uh huh|uhh|umm|hmm|hm|er|ah)\b'
+text = re.sub(fillers, '', raw, flags=re.IGNORECASE)
+text = re.sub(r'\s{2,}', ' ', text)
+text = re.sub(r'\s+([.,!?])', r'\1', text)
+text = re.sub(r'^[,.\s]+', '', text)
+text = text.strip()
+if text:
+    text = text[0].upper() + text[1:]
+print(text, end='')
+"
+}
+
+case "${1:-help}" in
+
+setup)
+  set -euo pipefail
+
+  # Only recreate venv if missing or broken
+  if [[ -x "$PYTHON" ]] && "$PYTHON" -c "import parakeet_mlx, sounddevice, soundfile, scipy" 2>/dev/null; then
+    echo "Venv OK — skipping recreate. Use --force to rebuild."
+    if [[ "${2:-}" != "--force" ]]; then
+      exit 0
+    fi
+    echo "Forcing rebuild..."
+  fi
+
+  echo "Creating venv at $VENV..."
+  rm -rf "$VENV"
+  uv venv "$VENV"
+
+  echo "Installing dependencies..."
+  uv pip install --python "$PYTHON" parakeet-mlx sounddevice soundfile numpy scipy
+
+  echo "Installing system deps..."
+  brew install socat ffmpeg 2>/dev/null || true
+
+  echo "Preloading model..."
+  HF_HUB_OFFLINE=1 "$PYTHON" -c "
+from parakeet_mlx import from_pretrained
+m = from_pretrained('mlx-community/parakeet-tdt-0.6b-v3')
+print(f'Model loaded: {type(m).__name__}')
+" 2>/dev/null || "$PYTHON" -c "
+from parakeet_mlx import from_pretrained
+m = from_pretrained('mlx-community/parakeet-tdt-0.6b-v3')
+print(f'Model loaded: {type(m).__name__}')
+"
+
+  echo "✅ Setup complete. Run: voice install"
+  ;;
+
+install)
+  set -euo pipefail
+
+  mkdir -p "$LOG_DIR"
+
+  cat > "$PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>${LABEL}</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>${WATCHDOG}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>${LOG_DIR}/voice-server.log</string>
+    <key>StandardErrorPath</key>
+    <string>${LOG_DIR}/voice-server.log</string>
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>Nice</key>
+    <integer>10</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>LowPriorityBackgroundIO</key>
+    <true/>
+</dict>
+</plist>
+EOF
+
+  echo "Installing log rotation (requires sudo)..."
+  sudo tee "$NEWSYSLOG_CONF" > /dev/null <<EOF
+# logfile                                      mode count size(KB) when  flags
+${LOG_DIR}/voice-server.log                    644  5     10240    *     GN
+EOF
+
+  launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
+  launchctl bootstrap "gui/$(id -u)" "$PLIST"
+
+  echo "✅ voice-server installed as LaunchAgent"
+  echo "   Logs:    $LOG_DIR/voice-server.log"
+  echo "   Auto-repair + exponential backoff on failure"
+  ;;
+
+uninstall)
+  set -euo pipefail
+
+  launchctl bootout "gui/$(id -u)" "$PLIST" 2>/dev/null || true
+  rm -f "$PLIST"
+  rm -f ~/.cache/voice-server.{sock,state,pane,failures}
+  sudo rm -f "$NEWSYSLOG_CONF" 2>/dev/null || true
+
+  echo "✅ voice-server uninstalled"
+  echo "   Logs kept at: ~/Library/Logs/voice-server/"
+  ;;
+
+start)
+  launchctl kickstart "gui/$(id -u)/$LABEL"
+  ;;
+
+stop)
+  launchctl kill SIGTERM "gui/$(id -u)/$LABEL"
+  ;;
+
+restart)
+  rm -f "$FAILURES"
+  launchctl kickstart -k "gui/$(id -u)/$LABEL"
+  ;;
+
+log)
+  exec tail -f "$LOG_FILE"
+  ;;
+
+toggle)
+  exec 2>>"${HOME}/.cache/voice-toggle.log"
+
+  PANE_ID="${2:-}"
+
+  # Shift+F9: toggle mode
+  if [[ "$PANE_ID" == "--toggle-mode" ]]; then
+    if [[ -f "$MODE_FILE" ]]; then
+      rm -f "$MODE_FILE"
+      tmux display-message "🎤 Voice: ✏️ review"
+    else
+      touch "$MODE_FILE"
+      tmux display-message "🎤 Voice: 🚀 auto"
+    fi
+    exit 0
+  fi
+
+  if [[ ! -S "$SOCK" ]]; then
+    tmux display-message "voice-server not running"
+    exit 1
+  fi
+
+  if [[ -f "$STATE" ]]; then
+    # Stop recording → processing → transcribe → done
+    rm -f "$STATE"
+    rm -f "$STARTED"
+    touch "$PROC"
+    target=$(cat "$PANE_FILE")
+    tmux display-message "⏳ Transcribing..."
+
+    raw_response=$(echo "stop" | socat -t 65 - UNIX-CONNECT:"$SOCK" 2>/dev/null) || true
+
+    if [[ -z "$raw_response" ]]; then
+      rm -f "$PROC" "$PANE_FILE"
+      echo "⚠️" > "$DONE"
+      tmux display-message "❌ Server returned empty response"
+      (sleep 3 && rm -f "$DONE") &
+      disown
+      exit 1
+    fi
+
+    text=$(printf '%s' "$raw_response" | _process_response)
+
+    rm -f "$PROC"
+
+    if [[ -n "$text" ]]; then
+      printf '%s' "$text" | pbcopy
+      tmux send-keys -t "$target" -l "$text"
+      [[ -f "$MODE_FILE" ]] && tmux send-keys -t "$target" Enter
+      echo "✅" > "$DONE"
+      tmux display-message "✅ Sent ${#text} chars"
+    else
+      echo "⚠️" > "$DONE"
+      tmux display-message "⚠️ No speech detected"
+    fi
+    rm -f "$PANE_FILE"
+    # Auto-clear done badge after 3s
+    (sleep 3 && rm -f "$DONE") &
+    disown
+  else
+    # Start recording
+    if echo "start" | socat -t 5 - UNIX-CONNECT:"$SOCK" >/dev/null 2>&1; then
+      echo "$PANE_ID" > "$PANE_FILE"
+      touch "$STATE"
+      tmux display-message "⏺️ Recording..."
+    else
+      tmux display-message "❌ voice-server not responding — run: voice restart"
+    fi
+  fi
+  ;;
+
+status)
+  case "${2:-state}" in
+    state)
+      if [[ -f "$DONE" ]]; then
+        cat "$DONE"
+      elif [[ -f "$PROC" ]]; then
+        echo "⏳"
+      elif [[ -f "$STATE" ]]; then
+        # Show duration if started timestamp exists
+        dur=""
+        if [[ -f "$STARTED" ]]; then
+          start_ts=$(cat "$STARTED")
+          elapsed=$(( $(date +%s) - ${start_ts%.*} ))
+          dur=" ${elapsed}s"
+        fi
+        # Query audio level from server
+        bar=""
+        level_json=$(echo "level" | socat -t 1 - UNIX-CONNECT:"$SOCK" 2>/dev/null) || true
+        if [[ -n "$level_json" ]]; then
+          bar=$(printf '%s' "$level_json" | python3 -c "
+import sys, json
+bars='▁▂▃▄▅▆▇█'
+try:
+    p=json.load(sys.stdin).get('peak',0)
+    print(bars[min(7,int(p*8))],end='')
+except: pass
+")
+        fi
+        echo "⏺️${dur} ${bar}"
+      else
+        echo "💤"
+      fi
+      ;;
+    mode)
+      if [[ -S "$SOCK" ]] && echo "ping" | socat -t 1 - UNIX-CONNECT:"$SOCK" 2>/dev/null | grep -q pong; then
+        ready="🟢"
+      else
+        ready="🔴"
+      fi
+      mode=$([[ -f "$MODE_FILE" ]] && echo "🚀" || echo "✏️")
+      echo "${ready} ${mode}"
+      ;;
+  esac
+  ;;
+
+retry)
+  exec 2>>"${HOME}/.cache/voice-toggle.log"
+
+  if [[ ! -S "$SOCK" ]]; then
+    tmux display-message "voice-server not running"
+    exit 1
+  fi
+
+  PANE_ID="${2:-$TMUX_PANE}"
+  # Use saved pane if available, otherwise use argument
+  if [[ -f "$PANE_FILE" ]]; then
+    target=$(cat "$PANE_FILE")
+  else
+    target="$PANE_ID"
+  fi
+
+  tmux display-message "⏳ Re-transcribing..."
+  raw_response=$(echo "retry" | socat -t 65 - UNIX-CONNECT:"$SOCK" 2>/dev/null) || true
+
+  if [[ -z "$raw_response" ]]; then
+    tmux display-message "❌ Server returned empty response"
+    exit 1
+  fi
+
+  text=$(printf '%s' "$raw_response" | _process_response)
+
+  if [[ -n "$text" ]]; then
+    printf '%s' "$text" | pbcopy
+    tmux send-keys -t "$target" -l "$text"
+    [[ -f "$MODE_FILE" ]] && tmux send-keys -t "$target" Enter
+    tmux display-message "✅ Retry: ${#text} chars"
+  else
+    tmux display-message "⚠️ Retry: no speech detected"
+  fi
+  ;;
+
+*)
+  cat <<EOF
+Usage: voice <command>
+
+Commands:
+  setup [--force]   Create venv and install dependencies
+  install           Install as macOS LaunchAgent
+  uninstall         Remove LaunchAgent and clean up
+  start             Start the voice server
+  stop              Stop the voice server
+  restart           Restart the voice server
+  log               Tail the server log
+  toggle [pane_id]  Toggle recording (tmux F9 handler)
+  retry [pane_id]   Re-transcribe last recording (tmux F10)
+  status [state|mode]  Show server/recording status
+EOF
+  ;;
+
+esac

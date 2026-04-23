@@ -7,7 +7,7 @@ export PATH="/opt/homebrew/bin:$PATH"
 VENV="$HOME/.local/share/voice-server/venv"
 PYTHON="$VENV/bin/python3"
 SERVER="$HOME/dev/lifesupport/bin/voice-server"
-SETUP="$HOME/dev/lifesupport/bin/voice-setup"
+SETUP="$HOME/dev/lifesupport/bin/voice"
 SOCK="$HOME/.cache/voice-server.sock"
 STATE="$HOME/.cache/voice-server.failures"
 LOG="$HOME/Library/Logs/voice-server/voice-server.log"
@@ -38,10 +38,10 @@ fi
 if (( needs_repair )); then
   log "running voice-setup to rebuild venv..."
   rm -rf "$VENV"
-  if "$SETUP" >> "$LOG" 2>&1; then
+  if "$SETUP" setup >> "$LOG" 2>&1; then
     log "venv rebuilt successfully"
   else
-    log "voice-setup failed"
+    log "voice setup failed"
     echo $(( failures + 1 )) > "$STATE"
     exit 1
   fi
@@ -52,7 +52,7 @@ fi
 server_pid=$!
 
 # --- Health check: wait for socket, then ping ---
-for i in 1 2 3 4 5; do
+for i in $(seq 1 15); do
   sleep 2
   if [[ -S "$SOCK" ]]; then
     pong=$(echo "ping" | socat -t 5 - UNIX-CONNECT:"$SOCK" 2>/dev/null)
@@ -73,7 +73,7 @@ for i in 1 2 3 4 5; do
 done
 
 # Health check failed — kill server and retry
-log "health check failed after 10s — killing server"
+log "health check failed after 30s — killing server"
 kill "$server_pid" 2>/dev/null
 wait "$server_pid" 2>/dev/null
 echo $(( failures + 1 )) > "$STATE"

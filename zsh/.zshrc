@@ -157,12 +157,6 @@ if [[ "$OS_TYPE" = "Darwin" ]]; then
     alias bru="brew update && brew upgrade; brew cleanup"
     alias dev="cd ~/SynologyDrive/Dev"
     alias arm="arch -arm64"
-
-    # Voice-to-text server (Parakeet TDT, Mac-only)
-    alias voice-start="launchctl kickstart gui/\$(id -u)/com.lifesupport.voice-server"
-    alias voice-stop="launchctl kill SIGTERM gui/\$(id -u)/com.lifesupport.voice-server"
-    alias voice-restart="rm -f ~/.cache/voice-server.failures; launchctl kickstart -k gui/\$(id -u)/com.lifesupport.voice-server"
-    alias voice-log="tail -f ~/Library/Logs/voice-server/voice-server.log"
 fi
 
 # Conditional aliases based on available tools

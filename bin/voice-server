@@ -2,11 +2,29 @@
 """Voice-to-text server using parakeet-mlx (macOS Apple Silicon only).
 
 Listens on a unix socket. Commands: start, stop, ping.
+
+Note: MLX GPU operations have thread affinity — transcription must run on
+the main thread. Socket handlers run in threads but dispatch transcription
+work to the main thread via a queue.
 """
+
+import os
+import sys
+
+# Re-exec under venv python if running from system python
+_VENV_PYTHON = os.path.expanduser("~/.local/share/voice-server/venv/bin/python3")
+if os.path.exists(_VENV_PYTHON) and os.path.realpath(sys.executable) != os.path.realpath(_VENV_PYTHON):
+    try:
+        os.execv(_VENV_PYTHON, [_VENV_PYTHON] + sys.argv)
+    except OSError as e:
+        print(f"[voice-server] FATAL: venv re-exec failed: {e}", file=sys.stderr)
+        sys.exit(1)
 
 import json
 import os
 import platform
+import queue
+import shutil
 import signal
 import socket
 import sys
@@ -17,15 +35,25 @@ import time
 if platform.system() != "Darwin":
     sys.exit("voice-server: macOS only. Linux/WSL support not yet implemented.")
 
+import numpy as np
+
 SOCK_PATH = os.path.expanduser("~/.cache/voice-server.sock")
+LAST_WAV_DIR = os.path.expanduser("~/.cache/voice-server")
+LAST_WAV = os.path.join(LAST_WAV_DIR, "last-recording.wav")
+STARTED_FILE = os.path.expanduser("~/.cache/voice-server.started")
 MODEL_RATE = 16000
 HEALTH_CHECK_INTERVAL = 60  # seconds
 
 _recording = False
 _audio_frames = []
+_stream = None
 _lock = threading.Lock()
+_peak_level = 0.0
 _device_rate = None
 _model = None
+
+# Queue for dispatching transcription to main thread
+_transcribe_queue = queue.Queue()
 
 
 def _log(msg):
@@ -34,58 +62,84 @@ def _log(msg):
 
 def _load_model():
     global _model
+    # Use cached model if available — avoids HF Hub network calls on every restart
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
     from parakeet_mlx import from_pretrained
     t0 = time.time()
-    _model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v3")
+    try:
+        _model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v3")
+    except Exception as e:
+        # Cache miss — fall back to online download
+        _log(f"offline model load failed ({e}), trying online...")
+        os.environ.pop("HF_HUB_OFFLINE", None)
+        _model = from_pretrained("mlx-community/parakeet-tdt-0.6b-v3")
     _log(f"model loaded in {time.time() - t0:.1f}s")
 
 
 def _record_callback(indata, frames, time_info, status):
+    global _peak_level
     if _recording:
         _audio_frames.append(indata.copy())
+        # Track peak amplitude for level indicator
+        peak = float(np.max(np.abs(indata)))
+        _peak_level = max(_peak_level, peak)
 
 
 def _resample(audio, orig_rate, target_rate):
     import numpy as np
     if orig_rate == target_rate:
         return audio
-    ratio = target_rate / orig_rate
-    n_out = int(len(audio) * ratio)
-    indices = np.arange(n_out) / ratio
-    floor = np.floor(indices).astype(int)
-    ceil = np.minimum(floor + 1, len(audio) - 1)
-    frac = indices - floor
-    return audio[floor] * (1 - frac) + audio[ceil] * frac
+    from scipy.signal import resample_poly
+    from math import gcd
+    g = gcd(int(target_rate), int(orig_rate))
+    return resample_poly(audio, int(target_rate) // g, int(orig_rate) // g).astype(np.float32)
 
 
 def _start_recording():
-    global _recording, _audio_frames, _device_rate
+    global _recording, _audio_frames, _device_rate, _stream
     import sounddevice as sd
     with _lock:
+        if _stream is not None:
+            try:
+                _stream.close()
+            except Exception:
+                pass
         _audio_frames = []
         _recording = True
-    dev_info = sd.query_devices(kind="input")
-    _device_rate = int(dev_info["default_samplerate"])
-    _start_recording._stream = sd.InputStream(
-        samplerate=_device_rate, channels=1, dtype="float32",
-        callback=_record_callback,
-    )
-    _start_recording._stream.start()
+        dev_info = sd.query_devices(kind="input")
+        _device_rate = int(dev_info["default_samplerate"])
+        _stream = sd.InputStream(
+            samplerate=_device_rate, channels=1, dtype="float32",
+            callback=_record_callback,
+        )
+        _stream.start()
+    with open(STARTED_FILE, "w") as f:
+        f.write(str(time.time()))
     _log("recording started")
 
 
 def _stop_and_transcribe():
-    global _recording
+    """Stop recording and transcribe. Must run on main thread (MLX requirement)."""
+    global _recording, _stream
     import numpy as np
     import soundfile as sf
     with _lock:
         _recording = False
-    _start_recording._stream.stop()
-    _start_recording._stream.close()
-    if not _audio_frames:
+        frames = list(_audio_frames)
+    if os.path.exists(STARTED_FILE):
+        os.unlink(STARTED_FILE)
+    if _stream is None:
+        _log("stop called with no active stream — ignoring")
+        return ""
+    try:
+        _stream.close()
+    except Exception:
+        pass
+    _stream = None
+    if not frames:
         _log("no audio frames captured")
         return ""
-    audio = np.concatenate(_audio_frames, axis=0).flatten()
+    audio = np.concatenate(frames, axis=0).flatten()
     duration = len(audio) / _device_rate
     _log(f"recorded {duration:.1f}s audio, resampling...")
     audio = _resample(audio, _device_rate, MODEL_RATE)
@@ -93,12 +147,26 @@ def _stop_and_transcribe():
     os.close(fd)
     try:
         sf.write(tmp, audio, MODEL_RATE)
+        # Save a copy before transcription so retry can re-transcribe
+        os.makedirs(LAST_WAV_DIR, exist_ok=True)
+        shutil.copy2(tmp, LAST_WAV)
+        _log(f"saved last recording to {LAST_WAV}")
         t0 = time.time()
         text = _model.transcribe(tmp).text
         _log(f"transcribed in {time.time() - t0:.1f}s: {len(text)} chars")
         return text
     finally:
         os.unlink(tmp)
+
+
+def _retry_transcribe():
+    """Re-transcribe the last saved recording. Must run on main thread (MLX requirement)."""
+    if not os.path.exists(LAST_WAV):
+        return None
+    t0 = time.time()
+    text = _model.transcribe(LAST_WAV).text
+    _log(f"retry transcribed in {time.time() - t0:.1f}s: {len(text)} chars")
+    return text
 
 
 def _handle(conn):
@@ -112,10 +180,39 @@ def _handle(conn):
             except OSError:
                 pass
         elif cmd == "stop":
-            text = _stop_and_transcribe()
+            # Dispatch to main thread — MLX requires it
+            result_q = queue.Queue()
+            _transcribe_queue.put((result_q, "stop"))
+            try:
+                text = result_q.get(timeout=60)
+            except queue.Empty:
+                _log("transcription timed out after 60s")
+                conn.sendall(json.dumps({"error": "timeout"}).encode() + b"\n")
+                return
             conn.sendall(json.dumps({"text": text}).encode() + b"\n")
         elif cmd == "ping":
             conn.sendall(b"pong\n")
+        elif cmd == "level":
+            global _peak_level
+            with _lock:
+                peak = _peak_level
+                recording = _recording
+                _peak_level = 0.0
+            conn.sendall(json.dumps({"recording": recording, "peak": round(peak, 3)}).encode() + b"\n")
+        elif cmd == "retry":
+            # Dispatch retry to main thread — MLX requires it
+            result_q = queue.Queue()
+            _transcribe_queue.put((result_q, "retry"))
+            try:
+                text = result_q.get(timeout=60)
+            except queue.Empty:
+                _log("retry transcription timed out after 60s")
+                conn.sendall(json.dumps({"error": "timeout"}).encode() + b"\n")
+                return
+            if text is None:
+                conn.sendall(json.dumps({"error": "no saved recording"}).encode() + b"\n")
+            else:
+                conn.sendall(json.dumps({"text": text}).encode() + b"\n")
     except Exception as e:
         _log(f"error handling '{cmd if 'cmd' in dir() else '?'}': {e}")
         try:
@@ -172,12 +269,32 @@ def main():
     signal.signal(signal.SIGTERM, _shutdown)
     signal.signal(signal.SIGINT, _shutdown)
 
+    # Accept connections in a thread so main thread can process transcriptions
+    def _accept_loop():
+        while True:
+            try:
+                conn, _ = srv.accept()
+                threading.Thread(target=_handle, args=(conn,), daemon=True).start()
+            except OSError:
+                break
+
+    threading.Thread(target=_accept_loop, daemon=True).start()
+
+    # Main thread: process transcription requests (MLX GPU thread affinity)
     while True:
         try:
-            conn, _ = srv.accept()
-            threading.Thread(target=_handle, args=(conn,), daemon=True).start()
-        except OSError:
-            break  # socket closed by shutdown or health check
+            result_q, action = _transcribe_queue.get(timeout=1)
+        except queue.Empty:
+            continue
+        try:
+            if action == "retry":
+                text = _retry_transcribe()
+            else:
+                text = _stop_and_transcribe()
+            result_q.put(text)
+        except Exception as e:
+            _log(f"transcription error: {e}")
+            result_q.put("")
 
 
 if __name__ == "__main__":

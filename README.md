@@ -85,40 +85,69 @@ From [nerd-fonts](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fo
 
 ## Voice-to-Text (macOS Apple Silicon only)
 
-Local speech-to-text using [parakeet-mlx](https://github.com/senstella/parakeet-mlx). Runs as a LaunchAgent daemon, triggered via tmux F9 keybinding. Transcribed text is copied to clipboard.
+Local speech-to-text using [parakeet-mlx](https://github.com/senstella/parakeet-mlx). Runs as a LaunchAgent daemon, controlled via the `voice` CLI. Transcribed text is sent to the active tmux pane and clipboard.
 
 ### Setup
 
 ```bash
 # One-time: create venv, install deps, download model
-bin/voice-setup
+voice setup
 
 # Install LaunchAgent daemon (starts on login)
-bin/voice-install
+voice install
 ```
 
 ### Usage
 
-In tmux, press **F9** to start recording, **F9** again to stop. Transcription is copied to clipboard.
+In tmux:
 
-### Scripts
-
-| Script | Purpose |
+| Key | Action |
 |---|---|
-| `voice-setup` | One-time venv + model setup |
-| `voice-install` | Install as LaunchAgent |
-| `voice-uninstall` | Remove LaunchAgent |
-| `voice-restart` | Restart the daemon |
-| `voice-toggle` | Tmux F9 handler (start/stop recording) |
-| `voice-server` | Python server (unix socket, managed by watchdog) |
-| `voice-watchdog` | Retry wrapper (3 attempts, then macOS notification) |
+| **F9** | Start/stop recording |
+| **Shift+F9** | Toggle auto/review mode |
+| **F10** | Retry last transcription |
+
+Two modes:
+- ✏️ **Review** (default) — text sent to pane + clipboard, you review before submitting
+- 🚀 **Auto** — same but also presses Enter
+
+Status bar indicators:
+
+| Icon | Meaning |
+|---|---|
+| 💤 | Idle |
+| ⏺️ 12s ▅ | Recording (duration + audio level) |
+| ⏳ | Transcribing |
+| ✅ / ⚠️ | Done / error (clears after 3s) |
+| 🟢 / 🔴 | Server up / down |
+| ✏️ / 🚀 | Review / auto mode |
+
+Last recording is saved to `~/.cache/voice-server/last-recording.wav` as a safety net.
+
+### Commands
+
+| Command | Purpose |
+|---|---|
+| `voice setup [--force]` | Create venv, install deps, download model |
+| `voice install` | Install as macOS LaunchAgent |
+| `voice uninstall` | Remove LaunchAgent and clean up |
+| `voice start` | Start the voice server |
+| `voice stop` | Stop the voice server |
+| `voice restart` | Restart the voice server (clears failure count) |
+| `voice log` | Tail the server log |
+| `voice toggle [pane_id]` | Toggle recording (tmux F9 handler) |
+| `voice retry [pane_id]` | Re-transcribe last recording (tmux F10) |
+| `voice status [state\|mode]` | Show server/recording status |
+
+`voice-server` and `voice-watchdog` still exist as separate scripts (Python server and LaunchAgent wrapper respectively).
 
 ### Troubleshooting
 
-- Logs: `~/Library/Logs/voice-server/voice-server.log`
+- Server log: `~/Library/Logs/voice-server/voice-server.log`
 - Toggle debug log: `~/.cache/voice-toggle.log`
+- Tail log: `voice log`
 - Ping test: `echo "ping" | socat -t 5 - UNIX-CONNECT:~/.cache/voice-server.sock`
-- If watchdog gives up after 3 retries, run `voice-restart`
+- If watchdog gives up after retries, run `voice restart`
 
 ### Requirements
 
