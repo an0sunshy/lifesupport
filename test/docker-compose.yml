@@ -1,0 +1,25 @@
+services:
+  dev-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        AUTHORIZED_KEY: "${AUTHORIZED_KEY:?run via run-test.sh which sets this}"
+    container_name: lifesupport-dev-test
+    hostname: dev-test
+    privileged: true                    # systemd + snap need this
+    cgroup: host                        # cgroup v2 passthrough on Ubuntu 24.04
+    tmpfs:
+      - /run
+      - /run/lock
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      # Mount thor's GitHub key (read-only) so the container can clone the
+      # private nvim submodule. SSH key setup on real hosts stays manual.
+      - ${HOME}/.ssh/id_ed25519:/home/xiao/.ssh/id_ed25519:ro
+      - ${HOME}/.ssh/id_ed25519.pub:/home/xiao/.ssh/id_ed25519.pub:ro
+      - ${HOME}/.ssh/known_hosts:/home/xiao/.ssh/known_hosts:ro
+    ports:
+      - "2222:22"
+    stop_signal: SIGRTMIN+3            # systemd-friendly shutdown
+    stop_grace_period: 10s
