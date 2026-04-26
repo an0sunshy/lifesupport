@@ -186,32 +186,10 @@ mise exec -- /snap/bin/nvim --headless "+Lazy! sync" "+qa" 2>&1 | tail -5 || tru
 LOG "installing mason tools (MasonToolsUpdateSync — blocks until done)"
 mise exec -- /snap/bin/nvim --headless "+MasonToolsUpdateSync" "+qa" 2>&1 | tail -15 || true
 
-# ---------------------------------------------------------------- 11. weekly sync cron (opt-in)
-# `LIFESUPPORT_CRON=1 bootstrap.sh` installs a weekly sync cron entry. No-op on
-# macOS (use launchd separately) or if crontab is missing. Idempotent: skips if
-# the entry is already there.
-if [ "${LIFESUPPORT_CRON:-0}" = "1" ]; then
-  if [ "$(uname -s)" = "Darwin" ]; then
-    LOG "macOS: skipping cron (use launchd separately if you want this on Mac)"
-  elif ! command -v crontab >/dev/null 2>&1; then
-    LOG "crontab not installed — skipping cron setup"
-  else
-    cron_line="30 7 * * 1 $REPO_DIR/scripts/sync.sh --auto-stash >> $HOME/.cache/lifesupport-sync.log 2>&1"
-    if crontab -l 2>/dev/null | grep -qF "lifesupport/scripts/sync.sh"; then
-      LOG "weekly sync cron already present"
-    else
-      LOG "installing weekly sync cron (Mon 07:30 → ~/.cache/lifesupport-sync.log)"
-      mkdir -p "$HOME/.cache"
-      ( crontab -l 2>/dev/null; echo "$cron_line" ) | crontab -
-    fi
-  fi
-fi
-
-# ---------------------------------------------------------------- 12. shell
+# ---------------------------------------------------------------- 11. shell
 if [ "$(getent passwd "$USER" | cut -d: -f7)" != "/usr/bin/zsh" ]; then
   LOG "default shell is not zsh — run: chsh -s /usr/bin/zsh"
 fi
 
 LOG "done"
 LOG "next: open a new shell (zsh), verify: type mise claude nvim"
-[ "${LIFESUPPORT_CRON:-0}" != "1" ] && LOG "tip: re-run with LIFESUPPORT_CRON=1 to install a weekly sync cron"
