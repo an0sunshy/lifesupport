@@ -99,6 +99,9 @@ elif [[ "$OS_TYPE" = "Linux" ]]; then
     # Go configuration
     export GOPATH=/home/xiao/dev/go
     export PATH=$PATH:$GOPATH/bin
+
+    # Snap binaries (e.g. nvim) — /etc/profile.d/apps-bin-path.sh only runs in login shells
+    [[ -d /snap/bin ]] && export PATH=$PATH:/snap/bin
     
     # ZSH plugins (system paths)
     if [[ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]]; then 
