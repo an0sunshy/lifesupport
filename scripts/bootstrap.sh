@@ -14,11 +14,30 @@ LOG() { printf '\033[1;34m[bootstrap]\033[0m %s\n' "$*"; }
 # ---------------------------------------------------------------- 1. sanity
 LOG "checking prereqs"
 command -v git >/dev/null || { echo "git missing — install before running"; exit 1; }
-command -v sudo >/dev/null || { echo "sudo missing"; exit 1; }
-# Try non-interactive sudo first (works for NOPASSWD); fall back to interactive
-# cache (needs TTY); fail clearly if neither works.
-if ! sudo -n true 2>/dev/null; then
-  sudo -v 2>/dev/null || { echo "sudo needs a password and no TTY available — run 'sudo -v' first, then re-run this script"; exit 1; }
+# Define a SUDO wrapper: empty when running as root, "sudo" otherwise. Lets
+# this script work both on personal hosts (xiao + sudo) and on Proxmox /
+# bare-metal hosts where the only login is root.
+if [ "$(id -u)" -eq 0 ]; then
+  SUDO=""
+else
+  command -v sudo >/dev/null || { echo "sudo missing (and not running as root)"; exit 1; }
+  # Try non-interactive sudo first (works for NOPASSWD); fall back to
+  # interactive cache (needs TTY); fail clearly if neither works.
+  if ! sudo -n true 2>/dev/null; then
+    sudo -v 2>/dev/null || { echo "sudo needs a password and no TTY available — run 'sudo -v' first, then re-run this script"; exit 1; }
+  fi
+  SUDO="sudo"
+fi
+
+# Snap remaps $HOME for confined apps; when running as root, snap nvim ends up
+# looking at /home/root/.config/nvim instead of /root/.config/nvim and silently
+# starts with no config (Lazy/Mason commands then fail with E492). Setting the
+# XDG vars explicitly forces nvim to the real config/data dirs.
+if [ "$(id -u)" -eq 0 ]; then
+  export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+  export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+  export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+  export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 fi
 
 # Verify github SSH auth (don't fail — agent forwarding may be in play).
@@ -31,8 +50,8 @@ ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes -T git@github.com < /de
 
 # ---------------------------------------------------------------- 2. apt
 LOG "installing apt packages"
-sudo apt-get update -qq
-sudo apt-get install -y -qq \
+$SUDO apt-get update -qq
+$SUDO apt-get install -y -qq \
   zsh stow curl wget ca-certificates build-essential unzip \
   zsh-autosuggestions zsh-syntax-highlighting fzf jq \
   python3 python3-venv python3-pip \
@@ -43,14 +62,24 @@ sudo apt-get install -y -qq \
 # mason-lspconfig 2.x which calls vim.lsp.enable, available from nvim 0.11).
 if [ ! -x /snap/bin/nvim ]; then
   LOG "ensuring snapd is running"
-  if ! sudo systemctl is-active --quiet snapd 2>/dev/null; then
-    sudo systemctl daemon-reload || true
-    sudo systemctl enable --now snapd.socket snapd.service 2>&1 | tail -3 || true
+  if ! $SUDO systemctl is-active --quiet snapd 2>/dev/null; then
+    $SUDO systemctl daemon-reload || true
+    $SUDO systemctl enable --now snapd.socket snapd.service 2>&1 | tail -3 || true
   fi
   LOG "waiting for snap seed"
-  sudo snap wait system seed.loaded 2>&1 | tail -1 || true
+  $SUDO snap wait system seed.loaded 2>&1 | tail -1 || true
+  # On a freshly-installed snapd (e.g. PVE / Debian first-time install), the
+  # daemon advertises seed.loaded before the API is fully ready, and the
+  # first snap install often dies with "context canceled". Retry with backoff.
   LOG "installing nvim via snap"
-  sudo snap install nvim --classic
+  for attempt in 1 2 3 4 5; do
+    if $SUDO snap install nvim --classic; then
+      break
+    fi
+    [ "$attempt" -eq 5 ] && { echo "snap install failed after 5 attempts"; exit 1; }
+    LOG "  snap install attempt $attempt failed; retrying in 10s"
+    sleep 10
+  done
 fi
 # Prepend /snap/bin so the snap nvim wins over any apt-installed nvim that
 # happens to live in /usr/bin (the base bootstrap.yml installs that one).
@@ -61,32 +90,47 @@ mkdir -p "$HOME/dev"
 if [ ! -d "$REPO_DIR" ]; then
   LOG "cloning lifesupport"
   git clone "$REPO_URL" "$REPO_DIR"
+else
+  LOG "lifesupport already present — fetching + ff"
+  git -C "$REPO_DIR" fetch --quiet
+  # --ff-only refuses if local commits diverge — surfaces conflicts loudly
+  # rather than silently rebasing host-local edits.
+  if ! git -C "$REPO_DIR" pull --ff-only --quiet 2>&1; then
+    LOG "  WARNING: lifesupport pull failed (local edits or diverged?). Continuing with current state."
+  fi
 fi
 cd "$REPO_DIR"
 git config submodule.recurse true
 LOG "syncing submodules"
+# Tracks whatever commit the parent repo pins, not upstream tip — keeps the
+# nvim config version coherent with the parent commit you pulled.
 git submodule update --init --recursive
 
 # ---------------------------------------------------------------- 5. stow + nvim symlink
 LOG "stowing zsh + tmux"
 ts=$(date +%Y%m%d-%H%M%S)
 backup="$HOME/.dotfiles-backup-$ts"
-for f in .zshrc .tmux.conf; do
-  if [ -e "$HOME/$f" ] && [ ! -L "$HOME/$f" ]; then
-    mkdir -p "$backup"
-    mv "$HOME/$f" "$backup/"
-    LOG "  backed up $f → $backup/"
+# Move out of the way anything that exists and isn't already pointing at the
+# canonical lifesupport location. Handles both regular files (first-time
+# install) and stale symlinks pointing at a legacy ~/lifesupport/ checkout.
+ensure_clear() {
+  local target="$1"
+  local desired="$2"
+  [ -e "$target" ] || [ -L "$target" ] || return 0
+  if [ -L "$target" ] && [ "$(readlink -f "$target" 2>/dev/null)" = "$desired" ]; then
+    return 0
   fi
-done
+  mkdir -p "$backup"
+  mv "$target" "$backup/" 2>/dev/null || rm -rf "$target"
+  LOG "  cleared $target → $backup/"
+}
+ensure_clear "$HOME/.zshrc" "$REPO_DIR/zsh/.zshrc"
+ensure_clear "$HOME/.tmux.conf" "$REPO_DIR/tmux/.tmux.conf"
 stow -t "$HOME" zsh tmux
 
 LOG "linking ~/.config/nvim"
 mkdir -p "$HOME/.config"
-if [ -e "$HOME/.config/nvim" ] && [ ! -L "$HOME/.config/nvim" ]; then
-  mkdir -p "$backup"
-  mv "$HOME/.config/nvim" "$backup/"
-  LOG "  backed up ~/.config/nvim → $backup/"
-fi
+ensure_clear "$HOME/.config/nvim" "$REPO_DIR/nvim"
 [ -L "$HOME/.config/nvim" ] || ln -s "$REPO_DIR/nvim" "$HOME/.config/nvim"
 
 # ---------------------------------------------------------------- 6. oh-my-zsh
