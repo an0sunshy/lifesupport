@@ -183,8 +183,34 @@ getHostname() {
         echo "Usage: getHostname <hostname>"
         return 1
     fi
-    
+
     rg "$1" ~/.ssh/config -A 5 | rg -o "Hostname\s+(\S+)" --replace '$1'
+}
+
+# Strip arguments from ccyolo before history is written, but keep a bare stub
+# so frecency + autosuggestions still count usage. Prompts often contain
+# secrets / long text we don't want resurfacing via Ctrl-R or zsh-autosuggestions.
+zshaddhistory() {
+    emulate -L zsh
+    local line=${1%%$'\n'}
+    case $line in
+        'ccyolo '*)
+            print -sr -- "${line%% *}"
+            return 1
+            ;;
+    esac
+    return 0
+}
+
+# Reset DEC private modes leaked by remote programs that died without cleanup
+# (mouse tracking 1000/1002/1003/1006, focus events 1004, hidden cursor 25).
+# Keepalives in ~/.ssh/config detect dead pipes in ~45s so the remote SIGHUP
+# usually runs cleanup, but this is the belt-and-braces backstop.
+ssh() {
+    command ssh "$@"
+    local rc=$?
+    [[ -t 1 ]] && printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?1004l\e[?25h'
+    return $rc
 }
 
 # ============================================================================
