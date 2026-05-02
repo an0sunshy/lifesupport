@@ -31,11 +31,19 @@ set -euo pipefail
 
 # ----------------------------------------------------------- 0. environment fix
 # Cron on some systems leaves $HOME empty, which makes snap nvim resolve XDG
-# dirs under /home/.local and fail with "permission denied". Backfill from
-# getent before anything reads $HOME.
+# dirs under /home/.local and fail with "permission denied". Backfill before
+# anything reads $HOME. `getent` is Linux-only; on macOS fall back to `dscl`,
+# then to tilde expansion (~user), so this works on every supported platform.
 if [ -z "${HOME:-}" ]; then
-  HOME="$(getent passwd "$(id -un)" | cut -d: -f6)"
+  _u="$(id -un)"
+  if command -v getent >/dev/null 2>&1; then
+    HOME="$(getent passwd "$_u" | cut -d: -f6)"
+  elif command -v dscl >/dev/null 2>&1; then
+    HOME="$(dscl . -read "/Users/$_u" NFSHomeDirectory 2>/dev/null | awk '{print $2}')"
+  fi
+  : "${HOME:=$(eval echo "~$_u")}"
   export HOME
+  unset _u
 fi
 
 REPO_DIR="${LIFESUPPORT_DIR:-$HOME/dev/lifesupport}"
@@ -45,8 +53,13 @@ LOG_MAX_BYTES="${LIFESUPPORT_SYNC_LOG_MAX:-262144}"
 SUCCESS_SENTINEL="$HOME/.cache/lifesupport-sync.last-success"
 LOG_FILE="${LIFESUPPORT_SYNC_LOG:-$HOME/.cache/lifesupport-sync.log}"
 
-LOG()  { printf '\033[1;34m[sync]\033[0m %s %s\n' "$(date -Iseconds)" "$*"; }
-WARN() { printf '\033[1;33m[sync WARN]\033[0m %s %s\n' "$(date -Iseconds)" "$*" >&2; }
+# `date -Iseconds` is GNU-only; the explicit format works on macOS BSD date too.
+NOW() { date '+%Y-%m-%dT%H:%M:%S%z'; }
+LOG()  { printf '\033[1;34m[sync]\033[0m %s %s\n' "$(NOW)" "$*"; }
+WARN() { printf '\033[1;33m[sync WARN]\033[0m %s %s\n' "$(NOW)" "$*" >&2; }
+
+# `stat -c %Y` is GNU; macOS BSD stat needs `-f %m`. Wrap the difference once.
+mtime_of() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null; }
 
 truncate_log() {
   # Self-rotate the log so a 5-min cadence can't grow it without bound. Only
@@ -70,7 +83,7 @@ mode="${1:-}"
 # If we haven't recorded a success recently, surface it loudly. We still try
 # to sync this run — the warning is just so silent drift can't hide.
 if [ -f "$SUCCESS_SENTINEL" ]; then
-  last_success_epoch=$(stat -c %Y "$SUCCESS_SENTINEL" 2>/dev/null || stat -f %m "$SUCCESS_SENTINEL" 2>/dev/null || echo 0)
+  last_success_epoch=$(mtime_of "$SUCCESS_SENTINEL" || echo 0)
   now_epoch=$(date +%s)
   age_days=$(( (now_epoch - last_success_epoch) / 86400 ))
   if [ "$age_days" -gt "$STALE_DAYS" ]; then
@@ -110,9 +123,10 @@ if [ "$mode" != "--auto-stash" ] && [ "$MIN_IDLE_MIN" -gt 0 ]; then
     LOG "paused: HEAD committed within last $MIN_IDLE_MIN min"
     exit 0
   fi
-  # Newest mtime among tracked files. `git ls-files -z | xargs -0 stat` is
-  # portable enough; we cap at the first hit older than threshold by sorting.
-  newest=$(git ls-files -z | xargs -0 stat -c %Y 2>/dev/null | sort -nr | head -1 || echo 0)
+  # Newest mtime among tracked files. We `stat` each file via mtime_of so the
+  # GNU/BSD difference is hidden. `xargs -0` keeps the pipeline NUL-safe for
+  # paths with spaces; the inner shell loops because mtime_of is a function.
+  newest=$(git ls-files -z | xargs -0 -I{} bash -c 'stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null' _ {} | sort -nr | head -1)
   if [ -n "$newest" ] && [ "$newest" -gt "$threshold_epoch" ]; then
     LOG "paused: tracked file modified within last $MIN_IDLE_MIN min"
     exit 0
