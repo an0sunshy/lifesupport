@@ -134,9 +134,16 @@ if [ "$mode" != "--auto-stash" ] && [ "$MIN_IDLE_MIN" -gt 0 ]; then
 fi
 
 # ------------------------------------------------------------ 4. pull
+# Capture stderr so a transient SSH/network failure produces a single tidy
+# log line instead of leaking raw "fatal: Could not read from remote" output.
+# A missed fetch isn't fatal — the next 5-min tick will retry.
 pre_head=$(git rev-parse HEAD)
 LOG "fetching"
-git fetch --quiet
+if ! fetch_err=$(git fetch --quiet 2>&1); then
+  WARN "fetch failed (transient?): $(printf '%s' "$fetch_err" | tr '\n' ' ' | head -c 200)"
+  [ "$stashed" -eq 1 ] && git stash pop >/dev/null 2>&1 || true
+  exit 2
+fi
 LOG "pulling (ff-only)"
 if ! git pull --ff-only --quiet; then
   LOG "pull failed (diverged?)"
