@@ -1,15 +1,33 @@
 #!/usr/bin/env bash
 # Idempotent dev-host bootstrap.
+#
+# Two install levels controlled by BOOTSTRAP_LEVEL:
+#   full     (default) — apt + snap nvim + stow dotfiles + mise + node@lts
+#                        + claude-code + Lazy/Mason. For interactive dev
+#                        workstations (wsl, devbox, agentspace).
+#   minimal              — apt essentials + stow dotfiles only. No snap, no
+#                        mise, no claude, no nvim plugins. For utility
+#                        servers that just need lifesupport configs current
+#                        and the 5-min sync cron working.
+#
 # Pre-reqs (manual):
-#   - SSH key for github.com:an0sunshy is in place (~/.ssh/id_ed25519 or agent forwarding)
-#   - User has sudo (will prompt)
+#   - SSH key for github.com:an0sunshy is in place (~/.ssh/id_ed25519 or
+#     agent forwarding)
+#   - User has sudo. If your account needs a password (no NOPASSWD), warm
+#     the sudo credential cache with `sudo -v` BEFORE running this in a
+#     non-interactive context (cron, ansible) — see no-TTY guard below.
 # Re-runnable: every step is a no-op if already done.
 
 set -euo pipefail
 
 REPO_URL="git@github.com:an0sunshy/lifesupport.git"
 REPO_DIR="$HOME/dev/lifesupport"
-LOG() { printf '\033[1;34m[bootstrap]\033[0m %s\n' "$*"; }
+BOOTSTRAP_LEVEL="${BOOTSTRAP_LEVEL:-full}"
+case "$BOOTSTRAP_LEVEL" in
+  full|minimal) ;;
+  *) echo "BOOTSTRAP_LEVEL must be 'full' or 'minimal' (got: $BOOTSTRAP_LEVEL)"; exit 1 ;;
+esac
+LOG() { printf '\033[1;34m[bootstrap:%s]\033[0m %s\n' "$BOOTSTRAP_LEVEL" "$*"; }
 
 # ---------------------------------------------------------------- 1. sanity
 LOG "checking prereqs"
@@ -21,10 +39,18 @@ if [ "$(id -u)" -eq 0 ]; then
   SUDO=""
 else
   command -v sudo >/dev/null || { echo "sudo missing (and not running as root)"; exit 1; }
-  # Try non-interactive sudo first (works for NOPASSWD); fall back to
-  # interactive cache (needs TTY); fail clearly if neither works.
+  # NOPASSWD path first. If that fails AND there's no controlling TTY
+  # (we're running under cron / ansible / piped stdin), fail loudly
+  # instead of letting `sudo -v` block forever waiting for a password it
+  # can never receive — that hang has eaten 30-minute windows in the past.
   if ! sudo -n true 2>/dev/null; then
-    sudo -v 2>/dev/null || { echo "sudo needs a password and no TTY available — run 'sudo -v' first, then re-run this script"; exit 1; }
+    if [ ! -t 0 ]; then
+      echo "ERROR: sudo needs a password but no TTY is attached." >&2
+      echo "       Run 'sudo -v' interactively before invoking this script" >&2
+      echo "       (e.g. via ansible, cron, or 'curl | bash')." >&2
+      exit 1
+    fi
+    sudo -v || { echo "sudo authentication failed"; exit 1; }
   fi
   SUDO="sudo"
 fi
@@ -49,18 +75,22 @@ ssh -o StrictHostKeyChecking=accept-new -o BatchMode=yes -T git@github.com < /de
   || echo "warning: github SSH auth not confirmed (proceeding anyway)"
 
 # ---------------------------------------------------------------- 2. apt
+# `minimal` only needs the bits required to render the dotfiles + run cron:
+# zsh, stow, cron, and a few shell-quality-of-life packages. `full` adds the
+# build/runtime stack for mise/node/claude and snapd for the nvim snap.
 LOG "installing apt packages"
 $SUDO apt-get update -qq
-$SUDO apt-get install -y -qq \
-  zsh stow curl wget ca-certificates build-essential unzip \
-  zsh-autosuggestions zsh-syntax-highlighting fzf jq \
-  python3 python3-venv python3-pip \
-  snapd
+APT_PACKAGES="zsh stow curl wget ca-certificates cron \
+  zsh-autosuggestions zsh-syntax-highlighting fzf jq"
+if [ "$BOOTSTRAP_LEVEL" = "full" ]; then
+  APT_PACKAGES="$APT_PACKAGES build-essential unzip python3 python3-venv python3-pip snapd"
+fi
+$SUDO apt-get install -y -qq $APT_PACKAGES
 
 # ---------------------------------------------------------------- 3. snap nvim
-# Always prefer snap (current stable) over apt (0.9.5 on noble — too old for
-# mason-lspconfig 2.x which calls vim.lsp.enable, available from nvim 0.11).
-if [ ! -x /snap/bin/nvim ]; then
+# `full` only — minimal hosts don't run nvim plugins (sync.sh skips the nvim
+# refresh phase when neither mise nor system npm is around).
+if [ "$BOOTSTRAP_LEVEL" = "full" ] && [ ! -x /snap/bin/nvim ]; then
   LOG "ensuring snapd is running"
   if ! $SUDO systemctl is-active --quiet snapd 2>/dev/null; then
     $SUDO systemctl daemon-reload || true
@@ -83,7 +113,7 @@ if [ ! -x /snap/bin/nvim ]; then
 fi
 # Prepend /snap/bin so the snap nvim wins over any apt-installed nvim that
 # happens to live in /usr/bin (the base bootstrap.yml installs that one).
-export PATH="/snap/bin:$PATH"
+[ -d /snap/bin ] && export PATH="/snap/bin:$PATH"
 
 # ---------------------------------------------------------------- 4. clone lifesupport
 mkdir -p "$HOME/dev"
@@ -146,17 +176,21 @@ if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/zsh-completions" ]; then
 fi
 
 # ---------------------------------------------------------------- 7. mise + node
-if [ ! -x "$HOME/.local/bin/mise" ]; then
-  LOG "installing mise"
-  curl -fsSL https://mise.run | sh
-fi
-export PATH="$HOME/.local/bin:$PATH"
-LOG "ensuring node lts"
-mise use -g node@lts >/dev/null
+# `full` only — minimal hosts don't run claude-code or the nvim plugin
+# refresh, both of which need node from mise.
+if [ "$BOOTSTRAP_LEVEL" = "full" ]; then
+  if [ ! -x "$HOME/.local/bin/mise" ]; then
+    LOG "installing mise"
+    curl -fsSL https://mise.run | sh
+  fi
+  export PATH="$HOME/.local/bin:$PATH"
+  LOG "ensuring node lts"
+  mise use -g node@lts >/dev/null
 
-# ---------------------------------------------------------------- 8. claude code
-LOG "installing claude code"
-mise exec -- npm install -g @anthropic-ai/claude-code >/dev/null
+  # ---------------------------------------------------------------- 8. claude code
+  LOG "installing claude code"
+  mise exec -- npm install -g @anthropic-ai/claude-code >/dev/null
+fi
 
 # ---------------------------------------------------------------- 9. zshrc-local-pre
 if [ ! -f "$HOME/.zshrc-local-pre" ]; then
@@ -177,19 +211,33 @@ EOF
 fi
 
 # ---------------------------------------------------------------- 10. nvim plugins
-# Run snap nvim explicitly via full path, under `mise exec` so its child
-# processes (mason installers that spawn npm/python3) inherit the
-# mise-managed runtime PATHs.
-LOG "installing/updating nvim plugins (Lazy! sync) — may take a minute"
-mise exec -- /snap/bin/nvim --headless "+Lazy! sync" "+qa" 2>&1 | tail -5 || true
+# `full` only. Snap nvim explicit, under `mise exec` so its child processes
+# (mason installers that spawn npm/python3) inherit mise-managed PATHs.
+if [ "$BOOTSTRAP_LEVEL" = "full" ]; then
+  LOG "installing/updating nvim plugins (Lazy! sync) — may take a minute"
+  mise exec -- /snap/bin/nvim --headless "+Lazy! sync" "+qa" 2>&1 | tail -5 || true
 
-LOG "installing mason tools (MasonToolsUpdateSync — blocks until done)"
-mise exec -- /snap/bin/nvim --headless "+MasonToolsUpdateSync" "+qa" 2>&1 | tail -15 || true
-
-# ---------------------------------------------------------------- 11. shell
-if [ "$(getent passwd "$USER" | cut -d: -f7)" != "/usr/bin/zsh" ]; then
-  LOG "default shell is not zsh — run: chsh -s /usr/bin/zsh"
+  LOG "installing mason tools (MasonToolsUpdateSync — blocks until done)"
+  mise exec -- /snap/bin/nvim --headless "+MasonToolsUpdateSync" "+qa" 2>&1 | tail -15 || true
 fi
 
-LOG "done"
-LOG "next: open a new shell (zsh), verify: type mise claude nvim"
+# ---------------------------------------------------------------- 11. shell
+# `getent passwd` is GNU-only; on macOS fall back to `dscl`. Bootstrap is
+# Linux-targeted but the consistency check is cross-platform-friendly.
+if command -v getent >/dev/null 2>&1; then
+  current_shell=$(getent passwd "$USER" | cut -d: -f7)
+elif command -v dscl >/dev/null 2>&1; then
+  current_shell=$(dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}')
+else
+  current_shell=""
+fi
+if [ -n "$current_shell" ] && [ "$current_shell" != "/usr/bin/zsh" ] && [ "$current_shell" != "/bin/zsh" ]; then
+  LOG "default shell is not zsh — run: chsh -s \$(command -v zsh)"
+fi
+
+LOG "done ($BOOTSTRAP_LEVEL)"
+if [ "$BOOTSTRAP_LEVEL" = "full" ]; then
+  LOG "next: open a new shell (zsh), verify: type mise claude nvim"
+else
+  LOG "next: open a new shell (zsh). Skipped: snap nvim, mise, claude, Lazy/Mason."
+fi

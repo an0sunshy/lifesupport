@@ -178,6 +178,33 @@ if [ "$pre_head" = "$post_head" ]; then
   exit 0
 fi
 
+# Locate mise. In interactive zsh `mise` is a shell function defined by the
+# user's rc, so `command -v mise` returns false in cron — we must look at
+# known binary paths. Without mise, mason installers can't find npm/python3
+# at install time and produce a flood of E492-style noise; we'd rather skip
+# the nvim refresh cleanly than ship broken plugins.
+MISE_BIN=""
+for candidate in \
+    "${MISE_BIN_PATH:-}" \
+    "$HOME/.local/bin/mise" \
+    "${XDG_DATA_HOME:-$HOME/.local/share}/mise/bin/mise" \
+    "/usr/local/bin/mise" \
+    "/opt/homebrew/bin/mise"; do
+  if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+    MISE_BIN="$candidate"; break
+  fi
+done
+
+# Skip the (expensive, network-heavy) nvim plugin/mason refresh if neither
+# mise nor a system npm is around — without one of them mason's installers
+# fail loudly. The dotfile-sync side is already done by this point; this is
+# purely cosmetic for hosts that aren't full dev workstations.
+if [ -z "$MISE_BIN" ] && ! command -v npm >/dev/null 2>&1; then
+  LOG "skip nvim refresh: no mise or system npm available on this host"
+  LOG "done"
+  exit 0
+fi
+
 # Prefer /snap/bin/nvim (current stable, what bootstrap installs) over whatever
 # `nvim` resolves to on PATH — Ubuntu's apt nvim 0.9.5 may be ahead in PATH and
 # is too old for the lifesupport config (mason-lspconfig 2.x needs 0.11+).
@@ -194,11 +221,11 @@ if [ "$(id -u)" -eq 0 ] || [ -n "${LIFESUPPORT_FORCE_XDG:-}" ]; then
   export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 fi
 
-# Run under mise exec if mise is around, so nvim's child processes (mason
+# Run under mise exec when available so nvim's child processes (mason
 # installers spawning npm/python3) inherit mise-managed runtime PATHs.
 RUNNER=()
-if command -v mise >/dev/null 2>&1; then
-  RUNNER=(mise exec --)
+if [ -n "$MISE_BIN" ]; then
+  RUNNER=("$MISE_BIN" exec --)
 fi
 
 LOG "Lazy! sync"
